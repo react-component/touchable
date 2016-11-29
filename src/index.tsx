@@ -12,10 +12,10 @@ function keyMirror(obj) {
 }
 
 function extractSingleTouch(nativeEvent) {
-  var touches = nativeEvent.touches;
-  var changedTouches = nativeEvent.changedTouches;
-  var hasTouches = touches && touches.length > 0;
-  var hasChangedTouches = changedTouches && changedTouches.length > 0;
+  const touches = nativeEvent.touches;
+  const changedTouches = nativeEvent.changedTouches;
+  const hasTouches = touches && touches.length > 0;
+  const hasChangedTouches = changedTouches && changedTouches.length > 0;
 
   return !hasTouches && hasChangedTouches ? changedTouches[0] : hasTouches ? touches[0] : nativeEvent;
 }
@@ -45,7 +45,7 @@ const States = keyMirror({
   RESPONDER_ACTIVE_PRESS_OUT: null,      // Responder, active, out of `PressRect`
   RESPONDER_ACTIVE_LONG_PRESS_IN: null,  // Responder, active, in the `PressRect`, after long press threshold
   RESPONDER_ACTIVE_LONG_PRESS_OUT: null, // Responder, active, out of `PressRect`, after long press threshold
-  ERROR: null
+  ERROR: null,
 });
 
 /**
@@ -53,7 +53,7 @@ const States = keyMirror({
  */
 const IsActive = {
   RESPONDER_ACTIVE_PRESS_OUT: true,
-  RESPONDER_ACTIVE_PRESS_IN: true
+  RESPONDER_ACTIVE_PRESS_IN: true,
 };
 
 /**
@@ -158,7 +158,7 @@ const Transitions = {
     ENTER_PRESS_RECT: States.NOT_RESPONDER,
     LEAVE_PRESS_RECT: States.NOT_RESPONDER,
     LONG_PRESS_DETECTED: States.NOT_RESPONDER,
-  }
+  },
 };
 
 // ==== Typical Constants for integrating into UI components ====
@@ -174,7 +174,6 @@ const LONG_PRESS_DELAY_MS = LONG_PRESS_THRESHOLD - HIGHLIGHT_DELAY_MS;
 
 const LONG_PRESS_ALLOWED_MOVEMENT = 10;
 // Default amount "active" region protrudes beyond box
-
 
 export interface TouchableProps {
   disabled?: boolean;
@@ -193,6 +192,10 @@ export interface TouchableProps {
     top: number;
     bottom: number;
   };
+  activeStyle?: any;
+  activeClassName?: string;
+  onPress?: (e?: any) => void;
+  onLongPress?: (e?: any) => void;
   longPressCancelsPress?: boolean;
 }
 
@@ -259,9 +262,15 @@ const Touchable = React.createClass<TouchableProps, any>({
       this.eventsReleaseHandle();
       this.eventsReleaseHandle = null;
     }
-    this.touchableDelayTimeout && clearTimeout(this.touchableDelayTimeout);
-    this.longPressDelayTimeout && clearTimeout(this.longPressDelayTimeout);
-    this.pressOutDelayTimeout && clearTimeout(this.pressOutDelayTimeout);
+    if (this.touchableDelayTimeout) {
+      clearTimeout(this.touchableDelayTimeout);
+    }
+    if (this.longPressDelayTimeout) {
+      clearTimeout(this.longPressDelayTimeout);
+    }
+    if (this.pressOutDelayTimeout) {
+      clearTimeout(this.pressOutDelayTimeout);
+    }
   },
 
   bindEvents() {
@@ -279,8 +288,10 @@ const Touchable = React.createClass<TouchableProps, any>({
     if (this.props.onLongPress && e.preventDefault) {
       e.preventDefault();
     }
-    this.pressOutDelayTimeout && clearTimeout(this.pressOutDelayTimeout);
-    this.pressOutDelayTimeout = null;
+    if (this.pressOutDelayTimeout) {
+      clearTimeout(this.pressOutDelayTimeout);
+      this.pressOutDelayTimeout = null;
+    }
 
     this.touchable.touchState = States.NOT_RESPONDER;
     this._receiveSignal(Signals.RESPONDER_GRANT, e);
@@ -346,7 +357,8 @@ const Touchable = React.createClass<TouchableProps, any>({
     const pageY = touch && touch.pageY;
 
     if (this.pressInLocation) {
-      const movedDistance = this._getDistanceBetweenPoints(pageX, pageY, this.pressInLocation.pageX, this.pressInLocation.pageY);
+      const movedDistance = this._getDistanceBetweenPoints(pageX, pageY,
+        this.pressInLocation.pageX, this.pressInLocation.pageY);
       if (movedDistance > LONG_PRESS_ALLOWED_MOVEMENT) {
         this._cancelLongPressDelayTimeout();
       }
@@ -377,12 +389,16 @@ const Touchable = React.createClass<TouchableProps, any>({
 
   touchableHandleActivePressIn(e) {
     this.setActive(true);
-    this.props.onPressIn && this.props.onPressIn(e);
+    if (this.props.onPressIn) {
+      this.props.onPressIn(e);
+    }
   },
 
   touchableHandleActivePressOut(e) {
     this.setActive(false);
-    this.props.onPressOut && this.props.onPressOut(e);
+    if (this.props.onPressOut) {
+      this.props.onPressOut(e);
+    }
   },
 
   touchableHandlePress(e) {
@@ -458,8 +474,10 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   _cancelLongPressDelayTimeout() {
-    this.longPressDelayTimeout && clearTimeout(this.longPressDelayTimeout);
-    this.longPressDelayTimeout = null;
+    if (this.longPressDelayTimeout) {
+      clearTimeout(this.longPressDelayTimeout);
+      this.longPressDelayTimeout = null;
+    }
   },
 
   _isHighlight(state) {
@@ -497,7 +515,7 @@ const Touchable = React.createClass<TouchableProps, any>({
     }
 
     if (IsPressingIn[curState] && signal === Signals.LONG_PRESS_DETECTED) {
-      this.touchableHandleLongPress && this.touchableHandleLongPress(e);
+      this.touchableHandleLongPress(e);
     }
 
     if (newIsHighlight && !curIsHighlight) {
@@ -525,8 +543,10 @@ const Touchable = React.createClass<TouchableProps, any>({
       }
     }
 
-    this.touchableDelayTimeout && clearTimeout(this.touchableDelayTimeout);
-    this.touchableDelayTimeout = null;
+    if (this.touchableDelayTimeout) {
+      clearTimeout(this.touchableDelayTimeout);
+      this.touchableDelayTimeout = null;
+    }
   },
 
   _startHighlight(e) {

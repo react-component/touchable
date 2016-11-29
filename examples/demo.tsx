@@ -1,3 +1,5 @@
+/* tslint:disable:no-console */
+
 import Touchable from 'rc-touchable';
 import React from 'react';
 import ReactDOM from 'react-dom';

@@ -47,6 +47,12 @@ ReactDOM.render(<Touchable onPress={onPress} activeClassName="active">
     </thead>
     <tbody>
         <tr>
+          <td>disabled</td>
+          <td>boolean</td>
+          <td>false</td>
+          <td></td>
+        </tr>
+        <tr>
           <td>onPress</td>
           <td>()=>void</td>
           <td></td>

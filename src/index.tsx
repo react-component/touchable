@@ -17,7 +17,9 @@ function extractSingleTouch(nativeEvent) {
   const hasTouches = touches && touches.length > 0;
   const hasChangedTouches = changedTouches && changedTouches.length > 0;
 
-  return !hasTouches && hasChangedTouches ? changedTouches[0] : hasTouches ? touches[0] : nativeEvent;
+  return !hasTouches && hasChangedTouches ?
+    changedTouches[0] :
+    hasTouches ? touches[0] : nativeEvent;
 }
 
 function bindEvents(el, events) {

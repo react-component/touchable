@@ -30,13 +30,23 @@ webpackJsonp([0,1],[
 	var Test = _react2.default.createClass({
 	    displayName: 'Test',
 	    onPress: function onPress(e) {
-	        console.log('onPress', e);
+	        this.log('onPress', e);
 	    },
 	    onLongPress: function onLongPress(e) {
-	        console.log('onLongPress', e);
+	        this.log('onLongPress', e);
+	    },
+	    log: function log(m) {
+	        this.refs.log.innerHTML += '<p>' + m + ':' + Date.now() + '</p>';
+	        this.refs.log.scrollTop = this.refs.log.scrollHeight;
 	    },
 	    render: function render() {
-	        return _react2.default.createElement("div", { style: { margin: 100 } }, _react2.default.createElement("style", { dangerouslySetInnerHTML: { __html: style } }), _react2.default.createElement(_rcTouchable2.default, { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPress, onLongPress: this.onLongPress }, _react2.default.createElement("div", { style: { width: 100, height: 100, border: '1px solid red', boxSizing: 'border-box' } }, "click")));
+	        return _react2.default.createElement("div", { style: { margin: '20px' } }, _react2.default.createElement("div", { ref: "log", style: { height: 100, overflow: 'auto', margin: 10 } }), _react2.default.createElement("style", { dangerouslySetInnerHTML: { __html: style } }), _react2.default.createElement(_rcTouchable2.default, { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPress, onLongPress: this.onLongPress }, _react2.default.createElement("div", { style: {
+	                width: 100,
+	                height: 100,
+	                border: '1px solid red',
+	                boxSizing: 'border-box',
+	                WebkitUserSelect: 'none'
+	            } }, "click")));
 	    }
 	});
 	_reactDom2.default.render(_react2.default.createElement(Test, null), document.getElementById('__react-content'));
@@ -71,6 +81,10 @@ webpackJsonp([0,1],[
 	var _reactDom = __webpack_require__(35);
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
+	
+	var _raf = __webpack_require__(181);
+	
+	var _raf2 = _interopRequireDefault(_raf);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -255,22 +269,46 @@ webpackJsonp([0,1],[
 	        this.touchable = { touchState: undefined };
 	    },
 	    componentDidMount: function componentDidMount() {
+	        var _this = this;
+	
+	        this.root = _reactDom2.default.findDOMNode(this);
 	        this.eventsToBeBinded = {
-	            touchstart: this.touchableHandleResponderGrant,
+	            touchstart: function touchstart(e) {
+	                _this.lockMouse = true;
+	                if (_this.releaseLockTimer) {
+	                    clearTimeout(_this.releaseLockTimer);
+	                }
+	                _this.touchableHandleResponderGrant(e);
+	            },
 	            touchmove: this.touchableHandleResponderMove,
-	            touchend: this.touchableHandleResponderRelease,
-	            touchcancel: this.touchableHandleResponderTerminate,
+	            touchend: function touchend(e) {
+	                _this.releaseLockTimer = setTimeout(function () {
+	                    _this.lockMouse = false;
+	                }, 300);
+	                _this.touchableHandleResponderRelease(e);
+	            },
+	            touchcancel: function touchcancel(e) {
+	                _this.releaseLockTimer = setTimeout(function () {
+	                    _this.lockMouse = false;
+	                }, 300);
+	                _this.touchableHandleResponderTerminate(e);
+	            },
 	            mousedown: this.onMouseDown
 	        };
 	        this.bindEvents();
 	    },
 	    componentDidUpdate: function componentDidUpdate() {
+	        this.root = _reactDom2.default.findDOMNode(this);
 	        this.bindEvents();
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
+	        this.clearRaf();
 	        if (this.eventsReleaseHandle) {
 	            this.eventsReleaseHandle();
 	            this.eventsReleaseHandle = null;
+	        }
+	        if (this.releaseLockTimer) {
+	            clearTimeout(this.releaseLockTimer);
 	        }
 	        if (this.touchableDelayTimeout) {
 	            clearTimeout(this.touchableDelayTimeout);
@@ -283,6 +321,9 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    onMouseDown: function onMouseDown(e) {
+	        if (this.lockMouse) {
+	            return;
+	        }
 	        this.touchableHandleResponderGrant(e);
 	        document.addEventListener('mousemove', this.touchableHandleResponderMove, false);
 	        document.addEventListener('mouseup', this.onMouseUp, false);
@@ -293,7 +334,7 @@ webpackJsonp([0,1],[
 	        this.touchableHandleResponderRelease(e);
 	    },
 	    bindEvents: function bindEvents() {
-	        var root = _reactDom2.default.findDOMNode(this);
+	        var root = this.root;
 	        var disabled = this.props.disabled;
 	
 	        if (disabled && this.eventsReleaseHandle) {
@@ -304,12 +345,8 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    touchableHandleResponderGrant: function touchableHandleResponderGrant(e) {
-	        var _this = this;
+	        var _this2 = this;
 	
-	        // prevent mousedown
-	        if (e.preventDefault) {
-	            e.preventDefault();
-	        }
 	        if (this.pressOutDelayTimeout) {
 	            clearTimeout(this.pressOutDelayTimeout);
 	            this.pressOutDelayTimeout = null;
@@ -319,33 +356,52 @@ webpackJsonp([0,1],[
 	        var delayMS = this.props.delayPressIn;
 	        if (delayMS) {
 	            this.touchableDelayTimeout = setTimeout(function () {
-	                _this._handleDelay(e);
+	                _this2._handleDelay(e);
 	            }, delayMS);
 	        } else {
 	            this._handleDelay(e);
 	        }
 	        var longDelayMS = this.props.delayLongPress;
 	        this.longPressDelayTimeout = setTimeout(function () {
-	            _this._handleLongDelay(e);
+	            _this2._handleLongDelay(e);
 	        }, longDelayMS + delayMS);
 	    },
+	    clearRaf: function clearRaf() {
+	        if (this.rafHandle) {
+	            _raf2.default.cancel(this.rafHandle);
+	            this.rafHandle = null;
+	        }
+	    },
 	    touchableHandleResponderRelease: function touchableHandleResponderRelease(e) {
+	        this.clearRaf();
 	        this._receiveSignal(Signals.RESPONDER_RELEASE, e);
 	    },
 	    touchableHandleResponderTerminate: function touchableHandleResponderTerminate(e) {
+	        this.clearRaf();
 	        this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
 	    },
+	    checkScroll: function checkScroll(e) {
+	        var positionOnActivate = this.touchable.positionOnActivate;
+	        if (positionOnActivate) {
+	            // container or window scroll
+	            var boundingRect = this.root.getBoundingClientRect();
+	            if (boundingRect.left !== positionOnActivate.clientLeft || boundingRect.top !== positionOnActivate.clientTop) {
+	                this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+	            }
+	        }
+	    },
 	    touchableHandleResponderMove: function touchableHandleResponderMove(e) {
+	        // Measurement may not have returned yet.
+	        if (!this.touchable.positionOnActivate || this.touchable.touchState === States.NOT_RESPONDER) {
+	            return;
+	        }
+	        this.rafHandle = (0, _raf2.default)(this.checkScroll);
+	        var positionOnActivate = this.touchable.positionOnActivate;
 	        // Not enough time elapsed yet, wait for highlight -
 	        // this is just a perf optimization.
 	        if (this.touchable.touchState === States.RESPONDER_INACTIVE_PRESS_IN) {
 	            return;
 	        }
-	        // Measurement may not have returned yet.
-	        if (!this.touchable.positionOnActivate) {
-	            return;
-	        }
-	        var positionOnActivate = this.touchable.positionOnActivate;
 	        var dimensionsOnActivate = this.touchable.dimensionsOnActivate;
 	        var _props = this.props,
 	            pressRetentionOffset = _props.pressRetentionOffset,
@@ -412,11 +468,14 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    _remeasureMetricsOnActivation: function _remeasureMetricsOnActivation() {
-	        var root = _reactDom2.default.findDOMNode(this);
+	        var root = this.root;
+	
 	        var boundingRect = root.getBoundingClientRect();
 	        this.touchable.positionOnActivate = {
 	            left: boundingRect.left + window.pageXOffset,
-	            top: boundingRect.top + window.pageYOffset
+	            top: boundingRect.top + window.pageYOffset,
+	            clientLeft: boundingRect.left,
+	            clientTop: boundingRect.top
 	        };
 	        this.touchable.dimensionsOnActivate = {
 	            width: boundingRect.width,
@@ -440,10 +499,10 @@ webpackJsonp([0,1],[
 	        var curState = this.touchable.touchState;
 	        var nextState = Transitions[curState] && Transitions[curState][signal];
 	        if (!nextState) {
-	            throw new Error('Unrecognized signal `' + signal + '` or state `' + curState + '` for Touchable responder `' + '`');
+	            return;
 	        }
 	        if (nextState === States.ERROR) {
-	            throw new Error('Touchable cannot transition from `' + curState + '` to `' + signal + '` for responder `' + '`');
+	            return;
 	        }
 	        if (curState !== nextState) {
 	            this._performSideEffectsForTransition(curState, nextState, signal, e);
@@ -512,11 +571,11 @@ webpackJsonp([0,1],[
 	        this.touchableHandleActivePressIn(e);
 	    },
 	    _endHighlight: function _endHighlight(e) {
-	        var _this2 = this;
+	        var _this3 = this;
 	
 	        if (this.props.delayPressOut) {
 	            this.pressOutDelayTimeout = setTimeout(function () {
-	                _this2.touchableHandleActivePressOut(e);
+	                _this3.touchableHandleActivePressOut(e);
 	            }, this.props.delayPressOut);
 	        } else {
 	            this.touchableHandleActivePressOut(e);
@@ -1127,7 +1186,7 @@ webpackJsonp([0,1],[
 
 /***/ },
 /* 9 */
-[181, 10],
+[183, 10],
 /* 10 */
 /***/ function(module, exports) {
 
@@ -6819,7 +6878,7 @@ webpackJsonp([0,1],[
 
 /***/ },
 /* 53 */
-[181, 38],
+[183, 38],
 /* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -21477,6 +21536,124 @@ webpackJsonp([0,1],[
 
 /***/ },
 /* 181 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {var now = __webpack_require__(182)
+	  , root = typeof window === 'undefined' ? global : window
+	  , vendors = ['moz', 'webkit']
+	  , suffix = 'AnimationFrame'
+	  , raf = root['request' + suffix]
+	  , caf = root['cancel' + suffix] || root['cancelRequest' + suffix]
+	
+	for(var i = 0; !raf && i < vendors.length; i++) {
+	  raf = root[vendors[i] + 'Request' + suffix]
+	  caf = root[vendors[i] + 'Cancel' + suffix]
+	      || root[vendors[i] + 'CancelRequest' + suffix]
+	}
+	
+	// Some versions of FF have rAF but not cAF
+	if(!raf || !caf) {
+	  var last = 0
+	    , id = 0
+	    , queue = []
+	    , frameDuration = 1000 / 60
+	
+	  raf = function(callback) {
+	    if(queue.length === 0) {
+	      var _now = now()
+	        , next = Math.max(0, frameDuration - (_now - last))
+	      last = next + _now
+	      setTimeout(function() {
+	        var cp = queue.slice(0)
+	        // Clear queue here to prevent
+	        // callbacks from appending listeners
+	        // to the current frame's queue
+	        queue.length = 0
+	        for(var i = 0; i < cp.length; i++) {
+	          if(!cp[i].cancelled) {
+	            try{
+	              cp[i].callback(last)
+	            } catch(e) {
+	              setTimeout(function() { throw e }, 0)
+	            }
+	          }
+	        }
+	      }, Math.round(next))
+	    }
+	    queue.push({
+	      handle: ++id,
+	      callback: callback,
+	      cancelled: false
+	    })
+	    return id
+	  }
+	
+	  caf = function(handle) {
+	    for(var i = 0; i < queue.length; i++) {
+	      if(queue[i].handle === handle) {
+	        queue[i].cancelled = true
+	      }
+	    }
+	  }
+	}
+	
+	module.exports = function(fn) {
+	  // Wrap in a new function to prevent
+	  // `cancel` potentially being assigned
+	  // to the native rAF function
+	  return raf.call(root, fn)
+	}
+	module.exports.cancel = function() {
+	  caf.apply(root, arguments)
+	}
+	module.exports.polyfill = function() {
+	  root.requestAnimationFrame = raf
+	  root.cancelAnimationFrame = caf
+	}
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 182 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {// Generated by CoffeeScript 1.7.1
+	(function() {
+	  var getNanoSeconds, hrtime, loadTime;
+	
+	  if ((typeof performance !== "undefined" && performance !== null) && performance.now) {
+	    module.exports = function() {
+	      return performance.now();
+	    };
+	  } else if ((typeof process !== "undefined" && process !== null) && process.hrtime) {
+	    module.exports = function() {
+	      return (getNanoSeconds() - loadTime) / 1e6;
+	    };
+	    hrtime = process.hrtime;
+	    getNanoSeconds = function() {
+	      var hr;
+	      hr = hrtime();
+	      return hr[0] * 1e9 + hr[1];
+	    };
+	    loadTime = getNanoSeconds();
+	  } else if (Date.now) {
+	    module.exports = function() {
+	      return Date.now() - loadTime;
+	    };
+	    loadTime = Date.now();
+	  } else {
+	    module.exports = function() {
+	      return new Date().getTime() - loadTime;
+	    };
+	    loadTime = new Date().getTime();
+	  }
+	
+	}).call(this);
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+
+/***/ },
+/* 183 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**

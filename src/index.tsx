@@ -230,28 +230,13 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   componentDidMount() {
-    if ('ontouchstart' in window) {
-      this.eventsToBeBinded = {
-        touchstart: this.touchableHandleResponderGrant,
-        touchmove: this.touchableHandleResponderMove,
-        touchend: this.touchableHandleResponderRelease,
-        touchcancel: this.touchableHandleResponderTerminate,
-      } as any;
-    } else {
-      const onMouseUp = (e) => {
-        document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
-        document.removeEventListener('mouseup', onMouseUp, false);
-        this.touchableHandleResponderRelease(e);
-      };
-      this.eventsToBeBinded = {
-        mousedown: (e) => {
-          this.touchableHandleResponderGrant(e);
-          document.addEventListener('mousemove', this.touchableHandleResponderMove, false);
-          document.addEventListener('mouseup', onMouseUp, false);
-        },
-      } as any;
-    }
-
+    this.eventsToBeBinded = {
+      touchstart: this.touchableHandleResponderGrant,
+      touchmove: this.touchableHandleResponderMove,
+      touchend: this.touchableHandleResponderRelease,
+      touchcancel: this.touchableHandleResponderTerminate,
+      mousedown: this.onMouseDown,
+    } as any;
     this.bindEvents();
   },
 
@@ -275,6 +260,18 @@ const Touchable = React.createClass<TouchableProps, any>({
     }
   },
 
+  onMouseDown(e) {
+    this.touchableHandleResponderGrant(e);
+    document.addEventListener('mousemove', this.touchableHandleResponderMove, false);
+    document.addEventListener('mouseup', this.onMouseUp, false);
+  },
+
+  onMouseUp(e) {
+    document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
+    document.removeEventListener('mouseup', this.onMouseUp, false);
+    this.touchableHandleResponderRelease(e);
+  },
+
   bindEvents() {
     const root = ReactDOM.findDOMNode(this);
     const { disabled } = this.props;
@@ -287,7 +284,8 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderGrant(e) {
-    if (this.props.onLongPress && e.preventDefault) {
+    // prevent mousedown
+    if (e.preventDefault) {
       e.preventDefault();
     }
     if (this.pressOutDelayTimeout) {

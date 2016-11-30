@@ -255,31 +255,13 @@ webpackJsonp([0,1],[
 	        this.touchable = { touchState: undefined };
 	    },
 	    componentDidMount: function componentDidMount() {
-	        var _this = this;
-	
-	        if ('ontouchstart' in window) {
-	            this.eventsToBeBinded = {
-	                touchstart: this.touchableHandleResponderGrant,
-	                touchmove: this.touchableHandleResponderMove,
-	                touchend: this.touchableHandleResponderRelease,
-	                touchcancel: this.touchableHandleResponderTerminate
-	            };
-	        } else {
-	            (function () {
-	                var onMouseUp = function onMouseUp(e) {
-	                    document.removeEventListener('mousemove', _this.touchableHandleResponderMove, false);
-	                    document.removeEventListener('mouseup', onMouseUp, false);
-	                    _this.touchableHandleResponderRelease(e);
-	                };
-	                _this.eventsToBeBinded = {
-	                    mousedown: function mousedown(e) {
-	                        _this.touchableHandleResponderGrant(e);
-	                        document.addEventListener('mousemove', _this.touchableHandleResponderMove, false);
-	                        document.addEventListener('mouseup', onMouseUp, false);
-	                    }
-	                };
-	            })();
-	        }
+	        this.eventsToBeBinded = {
+	            touchstart: this.touchableHandleResponderGrant,
+	            touchmove: this.touchableHandleResponderMove,
+	            touchend: this.touchableHandleResponderRelease,
+	            touchcancel: this.touchableHandleResponderTerminate,
+	            mousedown: this.onMouseDown
+	        };
 	        this.bindEvents();
 	    },
 	    componentDidUpdate: function componentDidUpdate() {
@@ -300,6 +282,16 @@ webpackJsonp([0,1],[
 	            clearTimeout(this.pressOutDelayTimeout);
 	        }
 	    },
+	    onMouseDown: function onMouseDown(e) {
+	        this.touchableHandleResponderGrant(e);
+	        document.addEventListener('mousemove', this.touchableHandleResponderMove, false);
+	        document.addEventListener('mouseup', this.onMouseUp, false);
+	    },
+	    onMouseUp: function onMouseUp(e) {
+	        document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
+	        document.removeEventListener('mouseup', this.onMouseUp, false);
+	        this.touchableHandleResponderRelease(e);
+	    },
 	    bindEvents: function bindEvents() {
 	        var root = _reactDom2.default.findDOMNode(this);
 	        var disabled = this.props.disabled;
@@ -312,9 +304,10 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    touchableHandleResponderGrant: function touchableHandleResponderGrant(e) {
-	        var _this2 = this;
+	        var _this = this;
 	
-	        if (this.props.onLongPress && e.preventDefault) {
+	        // prevent mousedown
+	        if (e.preventDefault) {
 	            e.preventDefault();
 	        }
 	        if (this.pressOutDelayTimeout) {
@@ -326,14 +319,14 @@ webpackJsonp([0,1],[
 	        var delayMS = this.props.delayPressIn;
 	        if (delayMS) {
 	            this.touchableDelayTimeout = setTimeout(function () {
-	                _this2._handleDelay(e);
+	                _this._handleDelay(e);
 	            }, delayMS);
 	        } else {
 	            this._handleDelay(e);
 	        }
 	        var longDelayMS = this.props.delayLongPress;
 	        this.longPressDelayTimeout = setTimeout(function () {
-	            _this2._handleLongDelay(e);
+	            _this._handleLongDelay(e);
 	        }, longDelayMS + delayMS);
 	    },
 	    touchableHandleResponderRelease: function touchableHandleResponderRelease(e) {
@@ -519,11 +512,11 @@ webpackJsonp([0,1],[
 	        this.touchableHandleActivePressIn(e);
 	    },
 	    _endHighlight: function _endHighlight(e) {
-	        var _this3 = this;
+	        var _this2 = this;
 	
 	        if (this.props.delayPressOut) {
 	            this.pressOutDelayTimeout = setTimeout(function () {
-	                _this3.touchableHandleActivePressOut(e);
+	                _this2.touchableHandleActivePressOut(e);
 	            }, this.props.delayPressOut);
 	        } else {
 	            this.touchableHandleActivePressOut(e);

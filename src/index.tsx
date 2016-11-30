@@ -5,6 +5,7 @@
 import React from 'react';
 import assign from 'object-assign';
 import ReactDOM from 'react-dom';
+import raf from 'raf';
 
 function keyMirror(obj) {
   Object.keys(obj).forEach(k => obj[k] = k);
@@ -230,24 +231,46 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   componentDidMount() {
+    this.root = ReactDOM.findDOMNode(this);
     this.eventsToBeBinded = {
-      touchstart: this.touchableHandleResponderGrant,
+      touchstart: (e) => {
+        this.lockMouse = true;
+        if (this.releaseLockTimer) {
+          clearTimeout(this.releaseLockTimer);
+        }
+        this.touchableHandleResponderGrant(e);
+      },
       touchmove: this.touchableHandleResponderMove,
-      touchend: this.touchableHandleResponderRelease,
-      touchcancel: this.touchableHandleResponderTerminate,
+      touchend: (e) => {
+        this.releaseLockTimer = setTimeout(() => {
+          this.lockMouse = false;
+        }, 300);
+        this.touchableHandleResponderRelease(e);
+      },
+      touchcancel: (e) => {
+        this.releaseLockTimer = setTimeout(() => {
+          this.lockMouse = false;
+        }, 300);
+        this.touchableHandleResponderTerminate(e);
+      },
       mousedown: this.onMouseDown,
     } as any;
     this.bindEvents();
   },
 
   componentDidUpdate() {
+    this.root = ReactDOM.findDOMNode(this);
     this.bindEvents();
   },
 
   componentWillUnmount() {
+    this.clearRaf();
     if (this.eventsReleaseHandle) {
       this.eventsReleaseHandle();
       this.eventsReleaseHandle = null;
+    }
+    if (this.releaseLockTimer) {
+      clearTimeout(this.releaseLockTimer);
     }
     if (this.touchableDelayTimeout) {
       clearTimeout(this.touchableDelayTimeout);
@@ -261,6 +284,9 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   onMouseDown(e) {
+    if (this.lockMouse) {
+      return;
+    }
     this.touchableHandleResponderGrant(e);
     document.addEventListener('mousemove', this.touchableHandleResponderMove, false);
     document.addEventListener('mouseup', this.onMouseUp, false);
@@ -273,7 +299,7 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   bindEvents() {
-    const root = ReactDOM.findDOMNode(this);
+    const { root } = this;
     const { disabled } = this.props;
     if (disabled && this.eventsReleaseHandle) {
       this.eventsReleaseHandle();
@@ -284,10 +310,6 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderGrant(e) {
-    // prevent mousedown
-    if (e.preventDefault) {
-      e.preventDefault();
-    }
     if (this.pressOutDelayTimeout) {
       clearTimeout(this.pressOutDelayTimeout);
       this.pressOutDelayTimeout = null;
@@ -316,27 +338,51 @@ const Touchable = React.createClass<TouchableProps, any>({
     );
   },
 
+  clearRaf() {
+    if (this.rafHandle) {
+      (raf as any).cancel(this.rafHandle);
+      this.rafHandle = null;
+    }
+  },
+
   touchableHandleResponderRelease(e) {
+    this.clearRaf();
     this._receiveSignal(Signals.RESPONDER_RELEASE, e);
   },
 
   touchableHandleResponderTerminate(e) {
+    this.clearRaf();
     this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
   },
 
+  checkScroll(e) {
+    const positionOnActivate = this.touchable.positionOnActivate;
+    if (positionOnActivate) {
+      // container or window scroll
+      const boundingRect = this.root.getBoundingClientRect();
+      if (boundingRect.left !== positionOnActivate.clientLeft || boundingRect.top !== positionOnActivate.clientTop) {
+        this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+      }
+    }
+  },
+
   touchableHandleResponderMove(e) {
+    // Measurement may not have returned yet.
+    if (!this.touchable.positionOnActivate ||
+      this.touchable.touchState === States.NOT_RESPONDER) {
+      return;
+    }
+
+    this.rafHandle = raf(this.checkScroll);
+
+    const positionOnActivate = this.touchable.positionOnActivate;
+
     // Not enough time elapsed yet, wait for highlight -
     // this is just a perf optimization.
     if (this.touchable.touchState === States.RESPONDER_INACTIVE_PRESS_IN) {
       return;
     }
 
-    // Measurement may not have returned yet.
-    if (!this.touchable.positionOnActivate) {
-      return;
-    }
-
-    const positionOnActivate = this.touchable.positionOnActivate;
     const dimensionsOnActivate = this.touchable.dimensionsOnActivate;
     const { pressRetentionOffset, hitSlop } = this.props;
 
@@ -422,11 +468,13 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   _remeasureMetricsOnActivation() {
-    const root = ReactDOM.findDOMNode(this);
+    const { root } = this;
     const boundingRect = root.getBoundingClientRect();
     this.touchable.positionOnActivate = {
       left: boundingRect.left + window.pageXOffset,
       top: boundingRect.top + window.pageYOffset,
+      clientLeft: boundingRect.left,
+      clientTop: boundingRect.top,
     };
     this.touchable.dimensionsOnActivate = {
       width: boundingRect.width,
@@ -456,16 +504,10 @@ const Touchable = React.createClass<TouchableProps, any>({
     const curState = this.touchable.touchState;
     const nextState = Transitions[curState] && Transitions[curState][signal];
     if (!nextState) {
-      throw new Error(
-        'Unrecognized signal `' + signal + '` or state `' + curState +
-        '` for Touchable responder `' + '`'
-      );
+      return;
     }
     if (nextState === States.ERROR) {
-      throw new Error(
-        'Touchable cannot transition from `' + curState + '` to `' + signal +
-        '` for responder `' + '`'
-      );
+      return;
     }
     if (curState !== nextState) {
       this._performSideEffectsForTransition(curState, nextState, signal, e);

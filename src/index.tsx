@@ -309,7 +309,22 @@ const Touchable = React.createClass<TouchableProps, any>({
     }
   },
 
+  _remeasureMetricsOnInit() {
+    const { root } = this;
+    const boundingRect = root.getBoundingClientRect();
+    this.touchable = {
+      positionOnGrant: {
+        left: boundingRect.left + window.pageXOffset,
+        top: boundingRect.top + window.pageYOffset,
+        clientLeft: boundingRect.left,
+        clientTop: boundingRect.top,
+      },
+    };
+  },
+
   touchableHandleResponderGrant(e) {
+    this._remeasureMetricsOnInit();
+
     if (this.pressOutDelayTimeout) {
       clearTimeout(this.pressOutDelayTimeout);
       this.pressOutDelayTimeout = null;
@@ -347,6 +362,9 @@ const Touchable = React.createClass<TouchableProps, any>({
 
   touchableHandleResponderRelease(e) {
     this.clearRaf();
+    if (this.checkScroll(e) === false) {
+      return;
+    }
     this._receiveSignal(Signals.RESPONDER_RELEASE, e);
   },
 
@@ -356,26 +374,28 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   checkScroll(e) {
-    const positionOnActivate = this.touchable.positionOnActivate;
-    if (positionOnActivate) {
+    const positionOnGrant = this.touchable.positionOnGrant;
+    if (positionOnGrant) {
       // container or window scroll
       const boundingRect = this.root.getBoundingClientRect();
-      if (boundingRect.left !== positionOnActivate.clientLeft || boundingRect.top !== positionOnActivate.clientTop) {
+      if (boundingRect.left !== positionOnGrant.clientLeft || boundingRect.top !== positionOnGrant.clientTop) {
         this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+        return false;
       }
     }
   },
 
   touchableHandleResponderMove(e) {
+    // alipay webview does not call touchmove if page scroll...
+    this.rafHandle = raf(this.checkScroll);
+
     // Measurement may not have returned yet.
-    if (!this.touchable.positionOnActivate ||
+    if (!this.touchable.dimensionsOnActivate ||
       this.touchable.touchState === States.NOT_RESPONDER) {
       return;
     }
 
-    this.rafHandle = raf(this.checkScroll);
-
-    const positionOnActivate = this.touchable.positionOnActivate;
+    const positionOnGrant = this.touchable.positionOnGrant;
 
     // Not enough time elapsed yet, wait for highlight -
     // this is just a perf optimization.
@@ -411,14 +431,14 @@ const Touchable = React.createClass<TouchableProps, any>({
     }
 
     const isTouchWithinActive =
-      pageX > positionOnActivate.left - pressExpandLeft &&
-      pageY > positionOnActivate.top - pressExpandTop &&
+      pageX > positionOnGrant.left - pressExpandLeft &&
+      pageY > positionOnGrant.top - pressExpandTop &&
       pageX <
-      positionOnActivate.left +
+      positionOnGrant.left +
       dimensionsOnActivate.width +
       pressExpandRight &&
       pageY <
-      positionOnActivate.top +
+      positionOnGrant.top +
       dimensionsOnActivate.height +
       pressExpandBottom;
     if (isTouchWithinActive) {
@@ -470,12 +490,6 @@ const Touchable = React.createClass<TouchableProps, any>({
   _remeasureMetricsOnActivation() {
     const { root } = this;
     const boundingRect = root.getBoundingClientRect();
-    this.touchable.positionOnActivate = {
-      left: boundingRect.left + window.pageXOffset,
-      top: boundingRect.top + window.pageYOffset,
-      clientLeft: boundingRect.left,
-      clientTop: boundingRect.top,
-    };
     this.touchable.dimensionsOnActivate = {
       width: boundingRect.width,
       height: boundingRect.height,

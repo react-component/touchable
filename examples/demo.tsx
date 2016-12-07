@@ -10,6 +10,10 @@ const style = `
 `;
 
 const Test = React.createClass({
+  componentWillMount() {
+    window.log = this.log;
+  },
+
   onPress(e) {
     this.log('onPress', e);
   },

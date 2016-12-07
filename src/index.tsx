@@ -234,6 +234,7 @@ const Touchable = React.createClass<TouchableProps, any>({
     this.root = ReactDOM.findDOMNode(this);
     this.eventsToBeBinded = {
       touchstart: (e) => {
+        window.addEventListener('scroll', this.checkWindowScroll, false);
         this.lockMouse = true;
         if (this.releaseLockTimer) {
           clearTimeout(this.releaseLockTimer);
@@ -242,12 +243,14 @@ const Touchable = React.createClass<TouchableProps, any>({
       },
       touchmove: this.touchableHandleResponderMove,
       touchend: (e) => {
+        window.removeEventListener('scroll', this.checkWindowScroll, false);
         this.releaseLockTimer = setTimeout(() => {
           this.lockMouse = false;
         }, 300);
         this.touchableHandleResponderRelease(e);
       },
       touchcancel: (e) => {
+        window.removeEventListener('scroll', this.checkWindowScroll, false);
         this.releaseLockTimer = setTimeout(() => {
           this.lockMouse = false;
         }, 300);
@@ -316,6 +319,8 @@ const Touchable = React.createClass<TouchableProps, any>({
       positionOnGrant: {
         left: boundingRect.left + window.pageXOffset,
         top: boundingRect.top + window.pageYOffset,
+        width: boundingRect.width,
+        height: boundingRect.height,
         clientLeft: boundingRect.left,
         clientTop: boundingRect.top,
       },
@@ -323,6 +328,7 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderGrant(e) {
+    this.windowScrolled = false;
     this._remeasureMetricsOnInit();
 
     if (this.pressOutDelayTimeout) {
@@ -362,7 +368,8 @@ const Touchable = React.createClass<TouchableProps, any>({
 
   touchableHandleResponderRelease(e) {
     this.clearRaf();
-    if (this.checkScroll(e) === false) {
+    // log(this.checkEndScroll(e) + ' , ' + this.checkScroll(e) + ' , ' + this.windowScrolled);
+    if (this.checkEndScroll(e) === false || this.checkScroll(e) === false) {
       return;
     }
     this._receiveSignal(Signals.RESPONDER_RELEASE, e);
@@ -374,36 +381,33 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   checkScroll(e) {
+    if (this.windowScrolled) {
+      this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+      return false;
+    }
     const positionOnGrant = this.touchable.positionOnGrant;
-    if (positionOnGrant) {
-      // container or window scroll
-      const boundingRect = this.root.getBoundingClientRect();
-      if (boundingRect.left !== positionOnGrant.clientLeft || boundingRect.top !== positionOnGrant.clientTop) {
-        this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-        return false;
-      }
+    // container or window scroll
+    const boundingRect = this.root.getBoundingClientRect();
+    if (boundingRect.left !== positionOnGrant.clientLeft || boundingRect.top !== positionOnGrant.clientTop) {
+      this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+      return false;
     }
   },
 
-  touchableHandleResponderMove(e) {
-    // alipay webview does not call touchmove if page scroll...
-    this.rafHandle = raf(this.checkScroll);
+  checkWindowScroll() {
+    this.windowScrolled = true;
+    window.removeEventListener('scroll', this.checkWindowScroll, false);
+  },
 
-    // Measurement may not have returned yet.
-    if (!this.touchable.dimensionsOnActivate ||
-      this.touchable.touchState === States.NOT_RESPONDER) {
-      return;
+  checkEndScroll(e) {
+    if (!this.checkTouchWithinActive(e)) {
+      this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+      return false;
     }
+  },
 
-    const positionOnGrant = this.touchable.positionOnGrant;
-
-    // Not enough time elapsed yet, wait for highlight -
-    // this is just a perf optimization.
-    if (this.touchable.touchState === States.RESPONDER_INACTIVE_PRESS_IN) {
-      return;
-    }
-
-    const dimensionsOnActivate = this.touchable.dimensionsOnActivate;
+  checkTouchWithinActive(e) {
+    const { positionOnGrant } = this.touchable;
     const { pressRetentionOffset, hitSlop } = this.props;
 
     let pressExpandLeft = pressRetentionOffset.left;
@@ -421,6 +425,39 @@ const Touchable = React.createClass<TouchableProps, any>({
     const touch = extractSingleTouch(e);
     const pageX = touch && touch.pageX;
     const pageY = touch && touch.pageY;
+    return (
+      pageX > positionOnGrant.left - pressExpandLeft &&
+      pageY > positionOnGrant.top - pressExpandTop &&
+      pageX <
+      positionOnGrant.left +
+      positionOnGrant.width +
+      pressExpandRight &&
+      pageY <
+      positionOnGrant.top +
+      positionOnGrant.height +
+      pressExpandBottom
+    );
+  },
+
+  touchableHandleResponderMove(e) {
+    // alipay webview does not call touchmove if page scroll...
+    this.rafHandle = raf(this.checkScroll);
+
+    // Measurement may not have returned yet.
+    if (!this.touchable.dimensionsOnActivate ||
+      this.touchable.touchState === States.NOT_RESPONDER) {
+      return;
+    }
+
+    // Not enough time elapsed yet, wait for highlight -
+    // this is just a perf optimization.
+    if (this.touchable.touchState === States.RESPONDER_INACTIVE_PRESS_IN) {
+      return;
+    }
+
+    const touch = extractSingleTouch(e);
+    const pageX = touch && touch.pageX;
+    const pageY = touch && touch.pageY;
 
     if (this.pressInLocation) {
       const movedDistance = this._getDistanceBetweenPoints(pageX, pageY,
@@ -429,19 +466,7 @@ const Touchable = React.createClass<TouchableProps, any>({
         this._cancelLongPressDelayTimeout();
       }
     }
-
-    const isTouchWithinActive =
-      pageX > positionOnGrant.left - pressExpandLeft &&
-      pageY > positionOnGrant.top - pressExpandTop &&
-      pageX <
-      positionOnGrant.left +
-      dimensionsOnActivate.width +
-      pressExpandRight &&
-      pageY <
-      positionOnGrant.top +
-      dimensionsOnActivate.height +
-      pressExpandBottom;
-    if (isTouchWithinActive) {
+    if (this.checkTouchWithinActive(e)) {
       this._receiveSignal(Signals.ENTER_PRESS_RECT, e);
       const curState = this.touchable.touchState;
       if (curState === States.RESPONDER_INACTIVE_PRESS_IN) {
@@ -488,12 +513,7 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   _remeasureMetricsOnActivation() {
-    const { root } = this;
-    const boundingRect = root.getBoundingClientRect();
-    this.touchable.dimensionsOnActivate = {
-      width: boundingRect.width,
-      height: boundingRect.height,
-    };
+    this.touchable.dimensionsOnActivate = this.touchable.positionOnGrant;
   },
 
   _handleDelay(e) {

@@ -277,6 +277,7 @@ webpackJsonp([0,1],[
 	        this.root = _reactDom2.default.findDOMNode(this);
 	        this.eventsToBeBinded = {
 	            touchstart: function touchstart(e) {
+	                window.addEventListener('scroll', _this.checkWindowScroll, false);
 	                _this.lockMouse = true;
 	                if (_this.releaseLockTimer) {
 	                    clearTimeout(_this.releaseLockTimer);
@@ -285,12 +286,14 @@ webpackJsonp([0,1],[
 	            },
 	            touchmove: this.touchableHandleResponderMove,
 	            touchend: function touchend(e) {
+	                window.removeEventListener('scroll', _this.checkWindowScroll, false);
 	                _this.releaseLockTimer = setTimeout(function () {
 	                    _this.lockMouse = false;
 	                }, 300);
 	                _this.touchableHandleResponderRelease(e);
 	            },
 	            touchcancel: function touchcancel(e) {
+	                window.removeEventListener('scroll', _this.checkWindowScroll, false);
 	                _this.releaseLockTimer = setTimeout(function () {
 	                    _this.lockMouse = false;
 	                }, 300);
@@ -355,6 +358,8 @@ webpackJsonp([0,1],[
 	            positionOnGrant: {
 	                left: boundingRect.left + window.pageXOffset,
 	                top: boundingRect.top + window.pageYOffset,
+	                width: boundingRect.width,
+	                height: boundingRect.height,
 	                clientLeft: boundingRect.left,
 	                clientTop: boundingRect.top
 	            }
@@ -363,6 +368,7 @@ webpackJsonp([0,1],[
 	    touchableHandleResponderGrant: function touchableHandleResponderGrant(e) {
 	        var _this2 = this;
 	
+	        this.windowScrolled = false;
 	        this._remeasureMetricsOnInit();
 	        if (this.pressOutDelayTimeout) {
 	            clearTimeout(this.pressOutDelayTimeout);
@@ -391,7 +397,8 @@ webpackJsonp([0,1],[
 	    },
 	    touchableHandleResponderRelease: function touchableHandleResponderRelease(e) {
 	        this.clearRaf();
-	        if (this.checkScroll(e) === false) {
+	        // log(this.checkEndScroll(e) + ' , ' + this.checkScroll(e) + ' , ' + this.windowScrolled);
+	        if (this.checkEndScroll(e) === false || this.checkScroll(e) === false) {
 	            return;
 	        }
 	        this._receiveSignal(Signals.RESPONDER_RELEASE, e);
@@ -401,30 +408,30 @@ webpackJsonp([0,1],[
 	        this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
 	    },
 	    checkScroll: function checkScroll(e) {
+	        if (this.windowScrolled) {
+	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+	            return false;
+	        }
 	        var positionOnGrant = this.touchable.positionOnGrant;
-	        if (positionOnGrant) {
-	            // container or window scroll
-	            var boundingRect = this.root.getBoundingClientRect();
-	            if (boundingRect.left !== positionOnGrant.clientLeft || boundingRect.top !== positionOnGrant.clientTop) {
-	                this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-	                return false;
-	            }
+	        // container or window scroll
+	        var boundingRect = this.root.getBoundingClientRect();
+	        if (boundingRect.left !== positionOnGrant.clientLeft || boundingRect.top !== positionOnGrant.clientTop) {
+	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+	            return false;
 	        }
 	    },
-	    touchableHandleResponderMove: function touchableHandleResponderMove(e) {
-	        // alipay webview does not call touchmove if page scroll...
-	        this.rafHandle = (0, _raf2.default)(this.checkScroll);
-	        // Measurement may not have returned yet.
-	        if (!this.touchable.dimensionsOnActivate || this.touchable.touchState === States.NOT_RESPONDER) {
-	            return;
+	    checkWindowScroll: function checkWindowScroll() {
+	        this.windowScrolled = true;
+	        window.removeEventListener('scroll', this.checkWindowScroll, false);
+	    },
+	    checkEndScroll: function checkEndScroll(e) {
+	        if (!this.checkTouchWithinActive(e)) {
+	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+	            return false;
 	        }
+	    },
+	    checkTouchWithinActive: function checkTouchWithinActive(e) {
 	        var positionOnGrant = this.touchable.positionOnGrant;
-	        // Not enough time elapsed yet, wait for highlight -
-	        // this is just a perf optimization.
-	        if (this.touchable.touchState === States.RESPONDER_INACTIVE_PRESS_IN) {
-	            return;
-	        }
-	        var dimensionsOnActivate = this.touchable.dimensionsOnActivate;
 	        var _props = this.props,
 	            pressRetentionOffset = _props.pressRetentionOffset,
 	            hitSlop = _props.hitSlop;
@@ -442,14 +449,30 @@ webpackJsonp([0,1],[
 	        var touch = extractSingleTouch(e);
 	        var pageX = touch && touch.pageX;
 	        var pageY = touch && touch.pageY;
+	        return pageX > positionOnGrant.left - pressExpandLeft && pageY > positionOnGrant.top - pressExpandTop && pageX < positionOnGrant.left + positionOnGrant.width + pressExpandRight && pageY < positionOnGrant.top + positionOnGrant.height + pressExpandBottom;
+	    },
+	    touchableHandleResponderMove: function touchableHandleResponderMove(e) {
+	        // alipay webview does not call touchmove if page scroll...
+	        this.rafHandle = (0, _raf2.default)(this.checkScroll);
+	        // Measurement may not have returned yet.
+	        if (!this.touchable.dimensionsOnActivate || this.touchable.touchState === States.NOT_RESPONDER) {
+	            return;
+	        }
+	        // Not enough time elapsed yet, wait for highlight -
+	        // this is just a perf optimization.
+	        if (this.touchable.touchState === States.RESPONDER_INACTIVE_PRESS_IN) {
+	            return;
+	        }
+	        var touch = extractSingleTouch(e);
+	        var pageX = touch && touch.pageX;
+	        var pageY = touch && touch.pageY;
 	        if (this.pressInLocation) {
 	            var movedDistance = this._getDistanceBetweenPoints(pageX, pageY, this.pressInLocation.pageX, this.pressInLocation.pageY);
 	            if (movedDistance > LONG_PRESS_ALLOWED_MOVEMENT) {
 	                this._cancelLongPressDelayTimeout();
 	            }
 	        }
-	        var isTouchWithinActive = pageX > positionOnGrant.left - pressExpandLeft && pageY > positionOnGrant.top - pressExpandTop && pageX < positionOnGrant.left + dimensionsOnActivate.width + pressExpandRight && pageY < positionOnGrant.top + dimensionsOnActivate.height + pressExpandBottom;
-	        if (isTouchWithinActive) {
+	        if (this.checkTouchWithinActive(e)) {
 	            this._receiveSignal(Signals.ENTER_PRESS_RECT, e);
 	            var curState = this.touchable.touchState;
 	            if (curState === States.RESPONDER_INACTIVE_PRESS_IN) {
@@ -490,13 +513,7 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    _remeasureMetricsOnActivation: function _remeasureMetricsOnActivation() {
-	        var root = this.root;
-	
-	        var boundingRect = root.getBoundingClientRect();
-	        this.touchable.dimensionsOnActivate = {
-	            width: boundingRect.width,
-	            height: boundingRect.height
-	        };
+	        this.touchable.dimensionsOnActivate = this.touchable.positionOnGrant;
 	    },
 	    _handleDelay: function _handleDelay(e) {
 	        this.touchableDelayTimeout = null;

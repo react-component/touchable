@@ -12,6 +12,14 @@ function keyMirror(obj) {
   return obj;
 }
 
+function copy(from, list) {
+  const to = {};
+  list.forEach((k) => {
+    to[k] = from[k];
+  });
+  return to;
+}
+
 function extractSingleTouch(nativeEvent) {
   const touches = nativeEvent.touches;
   const changedTouches = nativeEvent.changedTouches;
@@ -21,20 +29,6 @@ function extractSingleTouch(nativeEvent) {
   return !hasTouches && hasChangedTouches ?
     changedTouches[0] :
     hasTouches ? touches[0] : nativeEvent;
-}
-
-function bindEvents(el, events) {
-  Object.keys(events).forEach((event) => {
-    const listener = events[event];
-    el.addEventListener(event, listener, false);
-  });
-
-  return () => {
-    Object.keys(events).forEach((event) => {
-      const listener = events[event];
-      el.removeEventListener(event, listener, false);
-    });
-  };
 }
 
 /**
@@ -232,46 +226,14 @@ const Touchable = React.createClass<TouchableProps, any>({
 
   componentDidMount() {
     this.root = ReactDOM.findDOMNode(this);
-    this.eventsToBeBinded = {
-      touchstart: (e) => {
-        window.addEventListener('scroll', this.checkWindowScroll, false);
-        this.lockMouse = true;
-        if (this.releaseLockTimer) {
-          clearTimeout(this.releaseLockTimer);
-        }
-        this.touchableHandleResponderGrant(e);
-      },
-      touchmove: this.touchableHandleResponderMove,
-      touchend: (e) => {
-        window.removeEventListener('scroll', this.checkWindowScroll, false);
-        this.releaseLockTimer = setTimeout(() => {
-          this.lockMouse = false;
-        }, 300);
-        this.touchableHandleResponderRelease(e);
-      },
-      touchcancel: (e) => {
-        window.removeEventListener('scroll', this.checkWindowScroll, false);
-        this.releaseLockTimer = setTimeout(() => {
-          this.lockMouse = false;
-        }, 300);
-        this.touchableHandleResponderTerminate(e);
-      },
-      mousedown: this.onMouseDown,
-    } as any;
-    this.bindEvents();
   },
 
   componentDidUpdate() {
     this.root = ReactDOM.findDOMNode(this);
-    this.bindEvents();
   },
 
   componentWillUnmount() {
     this.clearRaf();
-    if (this.eventsReleaseHandle) {
-      this.eventsReleaseHandle();
-      this.eventsReleaseHandle = null;
-    }
     if (this.releaseLockTimer) {
       clearTimeout(this.releaseLockTimer);
     }
@@ -286,11 +248,49 @@ const Touchable = React.createClass<TouchableProps, any>({
     }
   },
 
+  callChildEvent(event, e) {
+    const childHandle = this.props.children.props[event];
+    if (childHandle) {
+      childHandle(e);
+    }
+  },
+
+  onTouchStart(e) {
+    this.callChildEvent('onTouchStart', e);
+    this.lockMouse = true;
+    if (this.releaseLockTimer) {
+      clearTimeout(this.releaseLockTimer);
+    }
+    this.touchableHandleResponderGrant(e.nativeEvent);
+  },
+
+  onTouchMove(e) {
+    this.callChildEvent('onTouchMove', e);
+    this.touchableHandleResponderMove(e.nativeEvent);
+  },
+
+  onTouchEnd(e) {
+    this.callChildEvent('onTouchEnd', e);
+    this.releaseLockTimer = setTimeout(() => {
+      this.lockMouse = false;
+    }, 300);
+    this.touchableHandleResponderRelease(e.nativeEvent);
+  },
+
+  onTouchCancel(e) {
+    this.callChildEvent('onTouchCancel', e);
+    this.releaseLockTimer = setTimeout(() => {
+      this.lockMouse = false;
+    }, 300);
+    this.touchableHandleResponderTerminate(e.nativeEvent);
+  },
+
   onMouseDown(e) {
+    this.callChildEvent('onMouseDown', e);
     if (this.lockMouse) {
       return;
     }
-    this.touchableHandleResponderGrant(e);
+    this.touchableHandleResponderGrant(e.nativeEvent);
     document.addEventListener('mousemove', this.touchableHandleResponderMove, false);
     document.addEventListener('mouseup', this.onMouseUp, false);
   },
@@ -299,17 +299,6 @@ const Touchable = React.createClass<TouchableProps, any>({
     document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
     document.removeEventListener('mouseup', this.onMouseUp, false);
     this.touchableHandleResponderRelease(e);
-  },
-
-  bindEvents() {
-    const { root } = this;
-    const { disabled } = this.props;
-    if (disabled && this.eventsReleaseHandle) {
-      this.eventsReleaseHandle();
-      this.eventsReleaseHandle = null;
-    } else if (!disabled && !this.eventsReleaseHandle) {
-      this.eventsReleaseHandle = bindEvents(root, this.eventsToBeBinded);
-    }
   },
 
   _remeasureMetricsOnInit() {
@@ -328,7 +317,6 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderGrant(e) {
-    this.windowScrolled = false;
     this._remeasureMetricsOnInit();
 
     if (this.pressOutDelayTimeout) {
@@ -368,7 +356,6 @@ const Touchable = React.createClass<TouchableProps, any>({
 
   touchableHandleResponderRelease(e) {
     this.clearRaf();
-    // log(this.checkEndScroll(e) + ' , ' + this.checkScroll(e) + ' , ' + this.windowScrolled);
     if (this.checkEndScroll(e) === false || this.checkScroll(e) === false) {
       return;
     }
@@ -381,10 +368,6 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   checkScroll(e) {
-    if (this.windowScrolled) {
-      this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-      return false;
-    }
     const positionOnGrant = this.touchable.positionOnGrant;
     // container or window scroll
     const boundingRect = this.root.getBoundingClientRect();
@@ -392,11 +375,6 @@ const Touchable = React.createClass<TouchableProps, any>({
       this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
       return false;
     }
-  },
-
-  checkWindowScroll() {
-    this.windowScrolled = true;
-    window.removeEventListener('scroll', this.checkWindowScroll, false);
   },
 
   checkEndScroll(e) {
@@ -644,11 +622,18 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   render() {
-    const child = React.Children.only(this.props.children);
+    const { children, disabled, activeStyle, activeClassName } = this.props;
+    const events = disabled ? undefined :
+      copy(this, [
+        'onTouchStart',
+        'onTouchMove',
+        'onTouchEnd',
+        'onTouchCancel',
+        'onMouseDown',
+      ]);
+    const child = React.Children.only(children);
     if (this.state.active) {
-      let style = child.props.style;
-      let className = child.props.className;
-      const { activeStyle, activeClassName } = this.props;
+      let { style, className } = child.props;
       if (activeStyle) {
         style = assign({}, style, activeStyle);
       }
@@ -659,12 +644,12 @@ const Touchable = React.createClass<TouchableProps, any>({
           className = activeClassName;
         }
       }
-      return React.cloneElement(child, {
+      return React.cloneElement(child, assign({
         className,
         style,
-      });
+      }, events));
     }
-    return child;
+    return React.cloneElement(child, events);
   },
 });
 

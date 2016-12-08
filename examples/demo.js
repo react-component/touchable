@@ -496,8 +496,13 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    touchableHandlePress: function touchableHandlePress(e) {
+	        var _this3 = this;
+	
 	        if (this.props.onPress) {
-	            this.props.onPress(e);
+	            // prevent trigger popup modal touchend
+	            setTimeout(function () {
+	                _this3.props.onPress(e);
+	            }, 10);
 	        }
 	    },
 	    touchableHandleLongPress: function touchableHandleLongPress(e) {
@@ -604,11 +609,11 @@ webpackJsonp([0,1],[
 	        this.touchableHandleActivePressIn(e);
 	    },
 	    _endHighlight: function _endHighlight(e) {
-	        var _this3 = this;
+	        var _this4 = this;
 	
 	        if (this.props.delayPressOut) {
 	            this.pressOutDelayTimeout = setTimeout(function () {
-	                _this3.touchableHandleActivePressOut(e);
+	                _this4.touchableHandleActivePressOut(e);
 	            }, this.props.delayPressOut);
 	        } else {
 	            this.touchableHandleActivePressOut(e);

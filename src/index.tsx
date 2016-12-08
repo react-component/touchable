@@ -494,7 +494,10 @@ const Touchable = React.createClass<TouchableProps, any>({
 
   touchableHandlePress(e) {
     if (this.props.onPress) {
-      this.props.onPress(e);
+      // prevent trigger popup modal touchend
+      setTimeout(() => {
+        this.props.onPress(e);
+      }, 10);
     }
   },
 

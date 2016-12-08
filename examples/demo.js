@@ -97,24 +97,19 @@ webpackJsonp([0,1],[
 	    });
 	    return obj;
 	}
+	function copy(from, list) {
+	    var to = {};
+	    list.forEach(function (k) {
+	        to[k] = from[k];
+	    });
+	    return to;
+	}
 	function extractSingleTouch(nativeEvent) {
 	    var touches = nativeEvent.touches;
 	    var changedTouches = nativeEvent.changedTouches;
 	    var hasTouches = touches && touches.length > 0;
 	    var hasChangedTouches = changedTouches && changedTouches.length > 0;
 	    return !hasTouches && hasChangedTouches ? changedTouches[0] : hasTouches ? touches[0] : nativeEvent;
-	}
-	function _bindEvents(el, events) {
-	    Object.keys(events).forEach(function (event) {
-	        var listener = events[event];
-	        el.addEventListener(event, listener, false);
-	    });
-	    return function () {
-	        Object.keys(events).forEach(function (event) {
-	            var listener = events[event];
-	            el.removeEventListener(event, listener, false);
-	        });
-	    };
 	}
 	/**
 	 * Touchable states.
@@ -272,47 +267,13 @@ webpackJsonp([0,1],[
 	        this.touchable = { touchState: undefined };
 	    },
 	    componentDidMount: function componentDidMount() {
-	        var _this = this;
-	
 	        this.root = _reactDom2.default.findDOMNode(this);
-	        this.eventsToBeBinded = {
-	            touchstart: function touchstart(e) {
-	                window.addEventListener('scroll', _this.checkWindowScroll, false);
-	                _this.lockMouse = true;
-	                if (_this.releaseLockTimer) {
-	                    clearTimeout(_this.releaseLockTimer);
-	                }
-	                _this.touchableHandleResponderGrant(e);
-	            },
-	            touchmove: this.touchableHandleResponderMove,
-	            touchend: function touchend(e) {
-	                window.removeEventListener('scroll', _this.checkWindowScroll, false);
-	                _this.releaseLockTimer = setTimeout(function () {
-	                    _this.lockMouse = false;
-	                }, 300);
-	                _this.touchableHandleResponderRelease(e);
-	            },
-	            touchcancel: function touchcancel(e) {
-	                window.removeEventListener('scroll', _this.checkWindowScroll, false);
-	                _this.releaseLockTimer = setTimeout(function () {
-	                    _this.lockMouse = false;
-	                }, 300);
-	                _this.touchableHandleResponderTerminate(e);
-	            },
-	            mousedown: this.onMouseDown
-	        };
-	        this.bindEvents();
 	    },
 	    componentDidUpdate: function componentDidUpdate() {
 	        this.root = _reactDom2.default.findDOMNode(this);
-	        this.bindEvents();
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
 	        this.clearRaf();
-	        if (this.eventsReleaseHandle) {
-	            this.eventsReleaseHandle();
-	            this.eventsReleaseHandle = null;
-	        }
 	        if (this.releaseLockTimer) {
 	            clearTimeout(this.releaseLockTimer);
 	        }
@@ -326,11 +287,48 @@ webpackJsonp([0,1],[
 	            clearTimeout(this.pressOutDelayTimeout);
 	        }
 	    },
+	    callChildEvent: function callChildEvent(event, e) {
+	        var childHandle = this.props.children.props[event];
+	        if (childHandle) {
+	            childHandle(e);
+	        }
+	    },
+	    onTouchStart: function onTouchStart(e) {
+	        this.callChildEvent('onTouchStart', e);
+	        this.lockMouse = true;
+	        if (this.releaseLockTimer) {
+	            clearTimeout(this.releaseLockTimer);
+	        }
+	        this.touchableHandleResponderGrant(e.nativeEvent);
+	    },
+	    onTouchMove: function onTouchMove(e) {
+	        this.callChildEvent('onTouchMove', e);
+	        this.touchableHandleResponderMove(e.nativeEvent);
+	    },
+	    onTouchEnd: function onTouchEnd(e) {
+	        var _this = this;
+	
+	        this.callChildEvent('onTouchEnd', e);
+	        this.releaseLockTimer = setTimeout(function () {
+	            _this.lockMouse = false;
+	        }, 300);
+	        this.touchableHandleResponderRelease(e.nativeEvent);
+	    },
+	    onTouchCancel: function onTouchCancel(e) {
+	        var _this2 = this;
+	
+	        this.callChildEvent('onTouchCancel', e);
+	        this.releaseLockTimer = setTimeout(function () {
+	            _this2.lockMouse = false;
+	        }, 300);
+	        this.touchableHandleResponderTerminate(e.nativeEvent);
+	    },
 	    onMouseDown: function onMouseDown(e) {
+	        this.callChildEvent('onMouseDown', e);
 	        if (this.lockMouse) {
 	            return;
 	        }
-	        this.touchableHandleResponderGrant(e);
+	        this.touchableHandleResponderGrant(e.nativeEvent);
 	        document.addEventListener('mousemove', this.touchableHandleResponderMove, false);
 	        document.addEventListener('mouseup', this.onMouseUp, false);
 	    },
@@ -338,17 +336,6 @@ webpackJsonp([0,1],[
 	        document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
 	        document.removeEventListener('mouseup', this.onMouseUp, false);
 	        this.touchableHandleResponderRelease(e);
-	    },
-	    bindEvents: function bindEvents() {
-	        var root = this.root;
-	        var disabled = this.props.disabled;
-	
-	        if (disabled && this.eventsReleaseHandle) {
-	            this.eventsReleaseHandle();
-	            this.eventsReleaseHandle = null;
-	        } else if (!disabled && !this.eventsReleaseHandle) {
-	            this.eventsReleaseHandle = _bindEvents(root, this.eventsToBeBinded);
-	        }
 	    },
 	    _remeasureMetricsOnInit: function _remeasureMetricsOnInit() {
 	        var root = this.root;
@@ -366,9 +353,8 @@ webpackJsonp([0,1],[
 	        };
 	    },
 	    touchableHandleResponderGrant: function touchableHandleResponderGrant(e) {
-	        var _this2 = this;
+	        var _this3 = this;
 	
-	        this.windowScrolled = false;
 	        this._remeasureMetricsOnInit();
 	        if (this.pressOutDelayTimeout) {
 	            clearTimeout(this.pressOutDelayTimeout);
@@ -379,14 +365,14 @@ webpackJsonp([0,1],[
 	        var delayMS = this.props.delayPressIn;
 	        if (delayMS) {
 	            this.touchableDelayTimeout = setTimeout(function () {
-	                _this2._handleDelay(e);
+	                _this3._handleDelay(e);
 	            }, delayMS);
 	        } else {
 	            this._handleDelay(e);
 	        }
 	        var longDelayMS = this.props.delayLongPress;
 	        this.longPressDelayTimeout = setTimeout(function () {
-	            _this2._handleLongDelay(e);
+	            _this3._handleLongDelay(e);
 	        }, longDelayMS + delayMS);
 	    },
 	    clearRaf: function clearRaf() {
@@ -397,7 +383,6 @@ webpackJsonp([0,1],[
 	    },
 	    touchableHandleResponderRelease: function touchableHandleResponderRelease(e) {
 	        this.clearRaf();
-	        // log(this.checkEndScroll(e) + ' , ' + this.checkScroll(e) + ' , ' + this.windowScrolled);
 	        if (this.checkEndScroll(e) === false || this.checkScroll(e) === false) {
 	            return;
 	        }
@@ -408,10 +393,6 @@ webpackJsonp([0,1],[
 	        this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
 	    },
 	    checkScroll: function checkScroll(e) {
-	        if (this.windowScrolled) {
-	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-	            return false;
-	        }
 	        var positionOnGrant = this.touchable.positionOnGrant;
 	        // container or window scroll
 	        var boundingRect = this.root.getBoundingClientRect();
@@ -419,10 +400,6 @@ webpackJsonp([0,1],[
 	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
 	            return false;
 	        }
-	    },
-	    checkWindowScroll: function checkWindowScroll() {
-	        this.windowScrolled = true;
-	        window.removeEventListener('scroll', this.checkWindowScroll, false);
 	    },
 	    checkEndScroll: function checkEndScroll(e) {
 	        if (!this.checkTouchWithinActive(e)) {
@@ -496,12 +473,12 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    touchableHandlePress: function touchableHandlePress(e) {
-	        var _this3 = this;
+	        var _this4 = this;
 	
 	        if (this.props.onPress) {
 	            // prevent trigger popup modal touchend
 	            setTimeout(function () {
-	                _this3.props.onPress(e);
+	                _this4.props.onPress(e);
 	            }, 10);
 	        }
 	    },
@@ -609,24 +586,29 @@ webpackJsonp([0,1],[
 	        this.touchableHandleActivePressIn(e);
 	    },
 	    _endHighlight: function _endHighlight(e) {
-	        var _this4 = this;
+	        var _this5 = this;
 	
 	        if (this.props.delayPressOut) {
 	            this.pressOutDelayTimeout = setTimeout(function () {
-	                _this4.touchableHandleActivePressOut(e);
+	                _this5.touchableHandleActivePressOut(e);
 	            }, this.props.delayPressOut);
 	        } else {
 	            this.touchableHandleActivePressOut(e);
 	        }
 	    },
 	    render: function render() {
-	        var child = _react2.default.Children.only(this.props.children);
+	        var _props2 = this.props,
+	            children = _props2.children,
+	            disabled = _props2.disabled,
+	            activeStyle = _props2.activeStyle,
+	            activeClassName = _props2.activeClassName;
+	
+	        var events = disabled ? undefined : copy(this, ['onTouchStart', 'onTouchMove', 'onTouchEnd', 'onTouchCancel', 'onMouseDown']);
+	        var child = _react2.default.Children.only(children);
 	        if (this.state.active) {
-	            var style = child.props.style;
-	            var className = child.props.className;
-	            var _props2 = this.props,
-	                activeStyle = _props2.activeStyle,
-	                activeClassName = _props2.activeClassName;
+	            var _child$props = child.props,
+	                style = _child$props.style,
+	                className = _child$props.className;
 	
 	            if (activeStyle) {
 	                style = (0, _objectAssign2.default)({}, style, activeStyle);
@@ -638,12 +620,12 @@ webpackJsonp([0,1],[
 	                    className = activeClassName;
 	                }
 	            }
-	            return _react2.default.cloneElement(child, {
+	            return _react2.default.cloneElement(child, (0, _objectAssign2.default)({
 	                className: className,
 	                style: style
-	            });
+	            }, events));
 	        }
-	        return child;
+	        return _react2.default.cloneElement(child, events);
 	    }
 	});
 	exports.default = Touchable;

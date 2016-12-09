@@ -5,7 +5,6 @@
 import React from 'react';
 import assign from 'object-assign';
 import ReactDOM from 'react-dom';
-import raf from 'raf';
 
 function keyMirror(obj) {
   Object.keys(obj).forEach(k => obj[k] = k);
@@ -233,7 +232,6 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   componentWillUnmount() {
-    this.clearRaf();
     if (this.releaseLockTimer) {
       clearTimeout(this.releaseLockTimer);
     }
@@ -301,10 +299,15 @@ const Touchable = React.createClass<TouchableProps, any>({
     this.touchableHandleResponderRelease(e);
   },
 
-  _remeasureMetricsOnInit() {
+  _remeasureMetricsOnInit(e) {
     const { root } = this;
+    const touch = extractSingleTouch(e);
     const boundingRect = root.getBoundingClientRect();
     this.touchable = {
+      startMouse: {
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+      },
       positionOnGrant: {
         left: boundingRect.left + window.pageXOffset,
         top: boundingRect.top + window.pageYOffset,
@@ -317,7 +320,7 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderGrant(e) {
-    this._remeasureMetricsOnInit();
+    this._remeasureMetricsOnInit(e);
 
     if (this.pressOutDelayTimeout) {
       clearTimeout(this.pressOutDelayTimeout);
@@ -347,26 +350,6 @@ const Touchable = React.createClass<TouchableProps, any>({
     );
   },
 
-  clearRaf() {
-    if (this.rafHandle) {
-      (raf as any).cancel(this.rafHandle);
-      this.rafHandle = null;
-    }
-  },
-
-  touchableHandleResponderRelease(e) {
-    this.clearRaf();
-    if (this.checkEndScroll(e) === false || this.checkScroll(e) === false) {
-      return;
-    }
-    this._receiveSignal(Signals.RESPONDER_RELEASE, e);
-  },
-
-  touchableHandleResponderTerminate(e) {
-    this.clearRaf();
-    this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-  },
-
   checkScroll(e) {
     const positionOnGrant = this.touchable.positionOnGrant;
     // container or window scroll
@@ -377,11 +360,22 @@ const Touchable = React.createClass<TouchableProps, any>({
     }
   },
 
-  checkEndScroll(e) {
-    if (!this.checkTouchWithinActive(e)) {
+  touchableHandleResponderRelease(e) {
+    const touch = extractSingleTouch(e);
+    if (Math.abs(touch.pageX - this.touchable.startMouse.pageX) > 30 ||
+      Math.abs(touch.pageY - this.touchable.startMouse.pageY) > 30
+    ) {
       this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-      return false;
+      return;
     }
+    if (this.checkScroll(e) === false) {
+      return;
+    }
+    this._receiveSignal(Signals.RESPONDER_RELEASE, e);
+  },
+
+  touchableHandleResponderTerminate(e) {
+    this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
   },
 
   checkTouchWithinActive(e) {
@@ -418,9 +412,6 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderMove(e) {
-    // alipay webview does not call touchmove if page scroll...
-    this.rafHandle = raf(this.checkScroll);
-
     // Measurement may not have returned yet.
     if (!this.touchable.dimensionsOnActivate ||
       this.touchable.touchState === States.NOT_RESPONDER) {
@@ -434,6 +425,7 @@ const Touchable = React.createClass<TouchableProps, any>({
     }
 
     const touch = extractSingleTouch(e);
+
     const pageX = touch && touch.pageX;
     const pageY = touch && touch.pageY;
 

@@ -7,6 +7,15 @@ const style = `
 .active {
   background: red;
 }
+.x {
+ display:inline-block;
+ width:100px;
+ height:100px;
+ border:1px solid yellow;
+}
+.x:active {
+  background: red;
+}
 `;
 
 const Test = React.createClass({
@@ -49,6 +58,10 @@ const Test = React.createClass({
           >click
           </div>
         </Touchable>
+
+        <br/><br/>
+
+        <div tabIndex="0" className="x" onClick={() => { log('onClick'); }}>click</div>
       </div>
     );
   },

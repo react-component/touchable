@@ -25,7 +25,7 @@ webpackJsonp([0,1],[
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var style = '\n.active {\n  background: red;\n}\n'; /* tslint:disable:no-console */
+	var style = '\n.active {\n  background: red;\n}\n.x {\n display:inline-block;\n width:100px;\n height:100px;\n border:1px solid yellow;\n}\n.x:active {\n  background: red;\n}\n'; /* tslint:disable:no-console */
 	
 	var Test = _react2.default.createClass({
 	    displayName: 'Test',
@@ -49,7 +49,9 @@ webpackJsonp([0,1],[
 	                border: '1px solid red',
 	                boxSizing: 'border-box',
 	                WebkitUserSelect: 'none'
-	            } }, "click")));
+	            } }, "click")), _react2.default.createElement("br", null), _react2.default.createElement("br", null), _react2.default.createElement("div", { tabIndex: "0", className: "x", onClick: function onClick() {
+	                log('onClick');
+	            } }, "click"));
 	    }
 	});
 	_reactDom2.default.render(_react2.default.createElement(Test, null), document.getElementById('__react-content'));
@@ -84,10 +86,6 @@ webpackJsonp([0,1],[
 	var _reactDom = __webpack_require__(35);
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
-	
-	var _raf = __webpack_require__(181);
-	
-	var _raf2 = _interopRequireDefault(_raf);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -273,7 +271,6 @@ webpackJsonp([0,1],[
 	        this.root = _reactDom2.default.findDOMNode(this);
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
-	        this.clearRaf();
 	        if (this.releaseLockTimer) {
 	            clearTimeout(this.releaseLockTimer);
 	        }
@@ -337,11 +334,16 @@ webpackJsonp([0,1],[
 	        document.removeEventListener('mouseup', this.onMouseUp, false);
 	        this.touchableHandleResponderRelease(e);
 	    },
-	    _remeasureMetricsOnInit: function _remeasureMetricsOnInit() {
+	    _remeasureMetricsOnInit: function _remeasureMetricsOnInit(e) {
 	        var root = this.root;
 	
+	        var touch = extractSingleTouch(e);
 	        var boundingRect = root.getBoundingClientRect();
 	        this.touchable = {
+	            startMouse: {
+	                pageX: touch.pageX,
+	                pageY: touch.pageY
+	            },
 	            positionOnGrant: {
 	                left: boundingRect.left + window.pageXOffset,
 	                top: boundingRect.top + window.pageYOffset,
@@ -355,7 +357,7 @@ webpackJsonp([0,1],[
 	    touchableHandleResponderGrant: function touchableHandleResponderGrant(e) {
 	        var _this3 = this;
 	
-	        this._remeasureMetricsOnInit();
+	        this._remeasureMetricsOnInit(e);
 	        if (this.pressOutDelayTimeout) {
 	            clearTimeout(this.pressOutDelayTimeout);
 	            this.pressOutDelayTimeout = null;
@@ -375,23 +377,6 @@ webpackJsonp([0,1],[
 	            _this3._handleLongDelay(e);
 	        }, longDelayMS + delayMS);
 	    },
-	    clearRaf: function clearRaf() {
-	        if (this.rafHandle) {
-	            _raf2.default.cancel(this.rafHandle);
-	            this.rafHandle = null;
-	        }
-	    },
-	    touchableHandleResponderRelease: function touchableHandleResponderRelease(e) {
-	        this.clearRaf();
-	        if (this.checkEndScroll(e) === false || this.checkScroll(e) === false) {
-	            return;
-	        }
-	        this._receiveSignal(Signals.RESPONDER_RELEASE, e);
-	    },
-	    touchableHandleResponderTerminate: function touchableHandleResponderTerminate(e) {
-	        this.clearRaf();
-	        this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-	    },
 	    checkScroll: function checkScroll(e) {
 	        var positionOnGrant = this.touchable.positionOnGrant;
 	        // container or window scroll
@@ -401,11 +386,19 @@ webpackJsonp([0,1],[
 	            return false;
 	        }
 	    },
-	    checkEndScroll: function checkEndScroll(e) {
-	        if (!this.checkTouchWithinActive(e)) {
+	    touchableHandleResponderRelease: function touchableHandleResponderRelease(e) {
+	        var touch = extractSingleTouch(e);
+	        if (Math.abs(touch.pageX - this.touchable.startMouse.pageX) > 30 || Math.abs(touch.pageY - this.touchable.startMouse.pageY) > 30) {
 	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-	            return false;
+	            return;
 	        }
+	        if (this.checkScroll(e) === false) {
+	            return;
+	        }
+	        this._receiveSignal(Signals.RESPONDER_RELEASE, e);
+	    },
+	    touchableHandleResponderTerminate: function touchableHandleResponderTerminate(e) {
+	        this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
 	    },
 	    checkTouchWithinActive: function checkTouchWithinActive(e) {
 	        var positionOnGrant = this.touchable.positionOnGrant;
@@ -429,8 +422,6 @@ webpackJsonp([0,1],[
 	        return pageX > positionOnGrant.left - pressExpandLeft && pageY > positionOnGrant.top - pressExpandTop && pageX < positionOnGrant.left + positionOnGrant.width + pressExpandRight && pageY < positionOnGrant.top + positionOnGrant.height + pressExpandBottom;
 	    },
 	    touchableHandleResponderMove: function touchableHandleResponderMove(e) {
-	        // alipay webview does not call touchmove if page scroll...
-	        this.rafHandle = (0, _raf2.default)(this.checkScroll);
 	        // Measurement may not have returned yet.
 	        if (!this.touchable.dimensionsOnActivate || this.touchable.touchState === States.NOT_RESPONDER) {
 	            return;
@@ -1206,7 +1197,7 @@ webpackJsonp([0,1],[
 
 /***/ },
 /* 9 */
-[183, 10],
+[181, 10],
 /* 10 */
 /***/ function(module, exports) {
 
@@ -6898,7 +6889,7 @@ webpackJsonp([0,1],[
 
 /***/ },
 /* 53 */
-[183, 38],
+[181, 38],
 /* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -21556,124 +21547,6 @@ webpackJsonp([0,1],[
 
 /***/ },
 /* 181 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(global) {var now = __webpack_require__(182)
-	  , root = typeof window === 'undefined' ? global : window
-	  , vendors = ['moz', 'webkit']
-	  , suffix = 'AnimationFrame'
-	  , raf = root['request' + suffix]
-	  , caf = root['cancel' + suffix] || root['cancelRequest' + suffix]
-	
-	for(var i = 0; !raf && i < vendors.length; i++) {
-	  raf = root[vendors[i] + 'Request' + suffix]
-	  caf = root[vendors[i] + 'Cancel' + suffix]
-	      || root[vendors[i] + 'CancelRequest' + suffix]
-	}
-	
-	// Some versions of FF have rAF but not cAF
-	if(!raf || !caf) {
-	  var last = 0
-	    , id = 0
-	    , queue = []
-	    , frameDuration = 1000 / 60
-	
-	  raf = function(callback) {
-	    if(queue.length === 0) {
-	      var _now = now()
-	        , next = Math.max(0, frameDuration - (_now - last))
-	      last = next + _now
-	      setTimeout(function() {
-	        var cp = queue.slice(0)
-	        // Clear queue here to prevent
-	        // callbacks from appending listeners
-	        // to the current frame's queue
-	        queue.length = 0
-	        for(var i = 0; i < cp.length; i++) {
-	          if(!cp[i].cancelled) {
-	            try{
-	              cp[i].callback(last)
-	            } catch(e) {
-	              setTimeout(function() { throw e }, 0)
-	            }
-	          }
-	        }
-	      }, Math.round(next))
-	    }
-	    queue.push({
-	      handle: ++id,
-	      callback: callback,
-	      cancelled: false
-	    })
-	    return id
-	  }
-	
-	  caf = function(handle) {
-	    for(var i = 0; i < queue.length; i++) {
-	      if(queue[i].handle === handle) {
-	        queue[i].cancelled = true
-	      }
-	    }
-	  }
-	}
-	
-	module.exports = function(fn) {
-	  // Wrap in a new function to prevent
-	  // `cancel` potentially being assigned
-	  // to the native rAF function
-	  return raf.call(root, fn)
-	}
-	module.exports.cancel = function() {
-	  caf.apply(root, arguments)
-	}
-	module.exports.polyfill = function() {
-	  root.requestAnimationFrame = raf
-	  root.cancelAnimationFrame = caf
-	}
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
-
-/***/ },
-/* 182 */
-/***/ function(module, exports, __webpack_require__) {
-
-	/* WEBPACK VAR INJECTION */(function(process) {// Generated by CoffeeScript 1.7.1
-	(function() {
-	  var getNanoSeconds, hrtime, loadTime;
-	
-	  if ((typeof performance !== "undefined" && performance !== null) && performance.now) {
-	    module.exports = function() {
-	      return performance.now();
-	    };
-	  } else if ((typeof process !== "undefined" && process !== null) && process.hrtime) {
-	    module.exports = function() {
-	      return (getNanoSeconds() - loadTime) / 1e6;
-	    };
-	    hrtime = process.hrtime;
-	    getNanoSeconds = function() {
-	      var hr;
-	      hr = hrtime();
-	      return hr[0] * 1e9 + hr[1];
-	    };
-	    loadTime = getNanoSeconds();
-	  } else if (Date.now) {
-	    module.exports = function() {
-	      return Date.now() - loadTime;
-	    };
-	    loadTime = Date.now();
-	  } else {
-	    module.exports = function() {
-	      return new Date().getTime() - loadTime;
-	    };
-	    loadTime = new Date().getTime();
-	  }
-	
-	}).call(this);
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
-
-/***/ },
-/* 183 */
 /***/ function(module, exports, __webpack_require__, __webpack_module_template_argument_0__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/**

@@ -195,6 +195,15 @@ export interface TouchableProps {
   longPressCancelsPress?: boolean;
 }
 
+let lastClickTime = 0;
+
+const pressDelay = 200;
+
+function isAllowPress() {
+  // avoid click penetration
+  return Date.now() - lastClickTime >= pressDelay;
+}
+
 const Touchable = React.createClass<TouchableProps, any>({
   getDefaultProps() {
     return {
@@ -304,6 +313,7 @@ const Touchable = React.createClass<TouchableProps, any>({
     const touch = extractSingleTouch(e);
     const boundingRect = root.getBoundingClientRect();
     this.touchable = {
+      touchState: this.touchable.touchState,
       startMouse: {
         pageX: touch.pageX,
         pageY: touch.pageY,
@@ -320,14 +330,19 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderGrant(e) {
-    this._remeasureMetricsOnInit(e);
+    this.touchable.touchState = States.NOT_RESPONDER;
 
     if (this.pressOutDelayTimeout) {
       clearTimeout(this.pressOutDelayTimeout);
       this.pressOutDelayTimeout = null;
     }
 
-    this.touchable.touchState = States.NOT_RESPONDER;
+    if (!isAllowPress()) {
+      return;
+    }
+
+    this._remeasureMetricsOnInit(e);
+
     this._receiveSignal(Signals.RESPONDER_GRANT, e);
     const delayMS = this.props.delayPressIn;
     if (delayMS) {
@@ -361,6 +376,10 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderRelease(e) {
+    if (!isAllowPress()) {
+      this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+      return;
+    }
     const touch = extractSingleTouch(e);
     if (Math.abs(touch.pageX - this.touchable.startMouse.pageX) > 30 ||
       Math.abs(touch.pageY - this.touchable.startMouse.pageY) > 30
@@ -464,11 +483,9 @@ const Touchable = React.createClass<TouchableProps, any>({
 
   touchableHandlePress(e) {
     if (this.props.onPress) {
-      // prevent trigger popup modal touchend
-      setTimeout(() => {
-        this.props.onPress(e);
-      }, 10);
+      this.props.onPress(e);
     }
+    lastClickTime = Date.now();
   },
 
   touchableHandleLongPress(e) {

@@ -238,6 +238,12 @@ webpackJsonp([0,1],[
 	var LONG_PRESS_THRESHOLD = 500;
 	var LONG_PRESS_DELAY_MS = LONG_PRESS_THRESHOLD - HIGHLIGHT_DELAY_MS;
 	var LONG_PRESS_ALLOWED_MOVEMENT = 10;
+	var lastClickTime = 0;
+	var pressDelay = 200;
+	function isAllowPress() {
+	    // avoid click penetration
+	    return Date.now() - lastClickTime >= pressDelay;
+	}
 	var Touchable = _react2.default.createClass({
 	    displayName: 'Touchable',
 	    getDefaultProps: function getDefaultProps() {
@@ -340,6 +346,7 @@ webpackJsonp([0,1],[
 	        var touch = extractSingleTouch(e);
 	        var boundingRect = root.getBoundingClientRect();
 	        this.touchable = {
+	            touchState: this.touchable.touchState,
 	            startMouse: {
 	                pageX: touch.pageX,
 	                pageY: touch.pageY
@@ -357,12 +364,15 @@ webpackJsonp([0,1],[
 	    touchableHandleResponderGrant: function touchableHandleResponderGrant(e) {
 	        var _this3 = this;
 	
-	        this._remeasureMetricsOnInit(e);
+	        this.touchable.touchState = States.NOT_RESPONDER;
 	        if (this.pressOutDelayTimeout) {
 	            clearTimeout(this.pressOutDelayTimeout);
 	            this.pressOutDelayTimeout = null;
 	        }
-	        this.touchable.touchState = States.NOT_RESPONDER;
+	        if (!isAllowPress()) {
+	            return;
+	        }
+	        this._remeasureMetricsOnInit(e);
 	        this._receiveSignal(Signals.RESPONDER_GRANT, e);
 	        var delayMS = this.props.delayPressIn;
 	        if (delayMS) {
@@ -387,6 +397,10 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    touchableHandleResponderRelease: function touchableHandleResponderRelease(e) {
+	        if (!isAllowPress()) {
+	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+	            return;
+	        }
 	        var touch = extractSingleTouch(e);
 	        if (Math.abs(touch.pageX - this.touchable.startMouse.pageX) > 30 || Math.abs(touch.pageY - this.touchable.startMouse.pageY) > 30) {
 	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
@@ -464,14 +478,10 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    touchableHandlePress: function touchableHandlePress(e) {
-	        var _this4 = this;
-	
 	        if (this.props.onPress) {
-	            // prevent trigger popup modal touchend
-	            setTimeout(function () {
-	                _this4.props.onPress(e);
-	            }, 10);
+	            this.props.onPress(e);
 	        }
+	        lastClickTime = Date.now();
 	    },
 	    touchableHandleLongPress: function touchableHandleLongPress(e) {
 	        if (this.props.onLongPress) {
@@ -577,11 +587,11 @@ webpackJsonp([0,1],[
 	        this.touchableHandleActivePressIn(e);
 	    },
 	    _endHighlight: function _endHighlight(e) {
-	        var _this5 = this;
+	        var _this4 = this;
 	
 	        if (this.props.delayPressOut) {
 	            this.pressOutDelayTimeout = setTimeout(function () {
-	                _this5.touchableHandleActivePressOut(e);
+	                _this4.touchableHandleActivePressOut(e);
 	            }, this.props.delayPressOut);
 	        } else {
 	            this.touchableHandleActivePressOut(e);

@@ -376,8 +376,7 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderRelease(e) {
-    if (!isAllowPress()) {
-      this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+    if (!this.touchable.startMouse) {
       return;
     }
     const touch = extractSingleTouch(e);
@@ -394,6 +393,9 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderTerminate(e) {
+    if (!this.touchable.startMouse) {
+      return;
+    }
     this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
   },
 
@@ -431,6 +433,9 @@ const Touchable = React.createClass<TouchableProps, any>({
   },
 
   touchableHandleResponderMove(e) {
+    if (!this.touchable.startMouse) {
+      return;
+    }
     // Measurement may not have returned yet.
     if (!this.touchable.dimensionsOnActivate ||
       this.touchable.touchState === States.NOT_RESPONDER) {

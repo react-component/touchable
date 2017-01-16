@@ -59,6 +59,24 @@ const Test = React.createClass({
           </div>
         </Touchable>
 
+        <Touchable
+          activeStyle={{border:'1px solid yellow', padding:5}}
+          activeClassName="active"
+          onPress={this.onPress}
+          onLongPress={this.onLongPress}
+        >
+          <div
+            style={{
+              width:100,
+              height:100,
+              border:'1px solid red',
+              boxSizing:'border-box',
+              WebkitUserSelect:'none',
+            }}
+          >click 2
+          </div>
+        </Touchable>
+
         <br/><br/>
 
         <div tabIndex="0" className="x" onClick={() => { log('onClick'); }}>click</div>

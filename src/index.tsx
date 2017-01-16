@@ -337,7 +337,7 @@ const Touchable = React.createClass<ITouchable, any>({
       this.pressOutDelayTimeout = null;
     }
 
-    if (!isAllowPress()) {
+    if (this.props.fixClickPenetration && !isAllowPress()) {
       return;
     }
 

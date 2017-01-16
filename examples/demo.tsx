@@ -20,7 +20,7 @@ const style = `
 
 const Test = React.createClass({
   componentWillMount() {
-    window.log = this.log;
+    (window as any).log = this.log;
   },
 
   onPress(e) {
@@ -39,8 +39,8 @@ const Test = React.createClass({
   render() {
     return (
       <div style={{margin: '20px'}}>
-        <div ref="log" style={{height:100,overflow:'auto',margin: 10}} />
-        <style dangerouslySetInnerHTML={{__html: style}} />
+        <div ref="log" style={{height:100,overflow:'auto',margin: 10}}/>
+        <style dangerouslySetInnerHTML={{__html: style}}/>
         <Touchable
           activeStyle={{border:'1px solid yellow', padding:5}}
           activeClassName="active"
@@ -59,27 +59,9 @@ const Test = React.createClass({
           </div>
         </Touchable>
 
-        <Touchable
-          activeStyle={{border:'1px solid yellow', padding:5}}
-          activeClassName="active"
-          onPress={this.onPress}
-          onLongPress={this.onLongPress}
-        >
-          <div
-            style={{
-              width:100,
-              height:100,
-              border:'1px solid red',
-              boxSizing:'border-box',
-              WebkitUserSelect:'none',
-            }}
-          >click 2
-          </div>
-        </Touchable>
-
         <br/><br/>
 
-        <div tabIndex="0" className="x" onClick={() => { log('onClick'); }}>click</div>
+        <div tabIndex={0} className="x" onClick={() => { this.log('onClick'); }}>click</div>
       </div>
     );
   },

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>demo.js - example - rc-touchable@1.0.8</title>
+  <title>demo.js - example - rc-touchable@1.0.9</title>
   <meta name="viewport"
         content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
   <meta charset="utf-8"/>
@@ -263,7 +263,7 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
 <body>
   <div class="container">
     <div class="header">
-      <h1>rc-touchable@1.0.8</h1>
+      <h1>rc-touchable@1.0.9</h1>
 
       <p>React Touchable Component</p>
     </div>
@@ -327,6 +327,24 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
               WebkitUserSelect:<span class="hljs-string">'none'</span>,
             </span></span></span>}}
           &gt;<span class="hljs-tag">click</span>
+          &lt;/<span class="hljs-tag">div</span>&gt;
+        &lt;/<span class="hljs-tag">Touchable</span>&gt;
+
+        &lt;<span class="hljs-tag">Touchable</span>
+          <span class="hljs-tag">activeStyle</span>=<span class="hljs-rules">{{<span class="hljs-rule"><span class="hljs-attribute">border</span>:<span class="hljs-value"><span class="hljs-string">'1px solid yellow'</span>, padding:<span class="hljs-number">5</span></span></span></span>}}
+          <span class="hljs-tag">activeClassName</span>="<span class="hljs-tag">active</span>"
+          <span class="hljs-tag">onPress</span>=<span class="hljs-rules">{this.onPress}</span>
+          <span class="hljs-tag">onLongPress</span>=<span class="hljs-rules">{this.onLongPress}</span>
+        &gt;
+          &lt;<span class="hljs-tag">div</span>
+            <span class="hljs-tag">style</span>=<span class="hljs-rules">{{
+              <span class="hljs-rule"><span class="hljs-attribute">width</span>:<span class="hljs-value"><span class="hljs-number">100</span>,
+              height:<span class="hljs-number">100</span>,
+              border:<span class="hljs-string">'1px solid red'</span>,
+              boxSizing:<span class="hljs-string">'border-box'</span>,
+              WebkitUserSelect:<span class="hljs-string">'none'</span>,
+            </span></span></span>}}
+          &gt;<span class="hljs-tag">click</span> 2
           &lt;/<span class="hljs-tag">div</span>&gt;
         &lt;/<span class="hljs-tag">Touchable</span>&gt;
 

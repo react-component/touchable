@@ -49,7 +49,13 @@ webpackJsonp([0,1],[
 	                border: '1px solid red',
 	                boxSizing: 'border-box',
 	                WebkitUserSelect: 'none'
-	            } }, "click")), _react2.default.createElement("br", null), _react2.default.createElement("br", null), _react2.default.createElement("div", { tabIndex: "0", className: "x", onClick: function onClick() {
+	            } }, "click")), _react2.default.createElement(_rcTouchable2.default, { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPress, onLongPress: this.onLongPress }, _react2.default.createElement("div", { style: {
+	                width: 100,
+	                height: 100,
+	                border: '1px solid red',
+	                boxSizing: 'border-box',
+	                WebkitUserSelect: 'none'
+	            } }, "click 2")), _react2.default.createElement("br", null), _react2.default.createElement("br", null), _react2.default.createElement("div", { tabIndex: "0", className: "x", onClick: function onClick() {
 	                log('onClick');
 	            } }, "click"));
 	    }
@@ -397,8 +403,7 @@ webpackJsonp([0,1],[
 	        }
 	    },
 	    touchableHandleResponderRelease: function touchableHandleResponderRelease(e) {
-	        if (!isAllowPress()) {
-	            this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
+	        if (!this.touchable.startMouse) {
 	            return;
 	        }
 	        var touch = extractSingleTouch(e);
@@ -412,6 +417,9 @@ webpackJsonp([0,1],[
 	        this._receiveSignal(Signals.RESPONDER_RELEASE, e);
 	    },
 	    touchableHandleResponderTerminate: function touchableHandleResponderTerminate(e) {
+	        if (!this.touchable.startMouse) {
+	            return;
+	        }
 	        this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
 	    },
 	    checkTouchWithinActive: function checkTouchWithinActive(e) {
@@ -436,6 +444,9 @@ webpackJsonp([0,1],[
 	        return pageX > positionOnGrant.left - pressExpandLeft && pageY > positionOnGrant.top - pressExpandTop && pageX < positionOnGrant.left + positionOnGrant.width + pressExpandRight && pageY < positionOnGrant.top + positionOnGrant.height + pressExpandBottom;
 	    },
 	    touchableHandleResponderMove: function touchableHandleResponderMove(e) {
+	        if (!this.touchable.startMouse) {
+	            return;
+	        }
 	        // Measurement may not have returned yet.
 	        if (!this.touchable.dimensionsOnActivate || this.touchable.touchState === States.NOT_RESPONDER) {
 	            return;

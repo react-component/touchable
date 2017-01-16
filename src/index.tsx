@@ -171,7 +171,7 @@ const LONG_PRESS_DELAY_MS = LONG_PRESS_THRESHOLD - HIGHLIGHT_DELAY_MS;
 const LONG_PRESS_ALLOWED_MOVEMENT = 10;
 // Default amount "active" region protrudes beyond box
 
-export interface TouchableProps {
+export interface ITouchable {
   disabled?: boolean;
   delayPressIn?: number;
   delayLongPress?: number;
@@ -204,7 +204,7 @@ function isAllowPress() {
   return Date.now() - lastClickTime >= pressDelay;
 }
 
-const Touchable = React.createClass<TouchableProps, any>({
+const Touchable = React.createClass<ITouchable, any>({
   getDefaultProps() {
     return {
       disabled: false,
@@ -350,7 +350,7 @@ const Touchable = React.createClass<TouchableProps, any>({
         () => {
           this._handleDelay(e);
         },
-        delayMS
+        delayMS,
       );
     } else {
       this._handleDelay(e);
@@ -361,7 +361,7 @@ const Touchable = React.createClass<TouchableProps, any>({
       () => {
         this._handleLongDelay(e);
       },
-      longDelayMS + delayMS
+      longDelayMS + delayMS,
     );
   },
 

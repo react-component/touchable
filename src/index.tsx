@@ -238,7 +238,7 @@ const Touchable = React.createClass<ITouchable, any>({
 
   componentWillReceiveProps(nextProps) {
     // disabled auto clear active state
-    if (nextProps.disabled && nextProps.disabled !== this.props.disabled && this.state.active) {
+    if (nextProps.disabled && !this.props.disabled && this.state.active) {
       this.setState({
         active: false,
       });

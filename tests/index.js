@@ -2,6 +2,7 @@ import expect from 'expect.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Touchable from '../index';
+import TestUtils from 'react-addons-test-utils';
 
 describe('Touchable', () => {
   let container;
@@ -135,5 +136,38 @@ describe('Touchable', () => {
       }, 700);
 
     }, 200);
+  });
+
+  // https://github.com/ant-design/ant-design-mobile/issues/937#issuecomment-284625667
+  it('props.disabled should works fine with onClick', () => {
+    class Demo extends React.Component {
+      state = {
+        currentPage: 1,
+        disabled: false,
+      };
+      handleClick = () => {
+        const { currentPage } = this.state;
+        const nextPagae = currentPage + 1;
+        this.setState({
+          currentPage: nextPagae,
+          disabled: nextPagae >= 3,
+        });
+      }
+      render() {
+        return (
+          <Touchable activeClassName="t" disabled={this.state.disabled} ref={com => this.com = com}>
+            <div id="t" style={{ width: 100, height: 100 }} onClick={this.handleClick}>touch {this.state.currentPage}</div>
+          </Touchable>
+        )
+      }
+    }
+    const instance = ReactDOM.render(<Demo />, container)
+    const com = instance.com;
+    const t = document.getElementById('t');
+
+    TestUtils.Simulate.click(t);
+    TestUtils.Simulate.click(t);
+    expect(t.className).to.be('');
+    expect(com.props.disabled).to.be(true);
   });
 });

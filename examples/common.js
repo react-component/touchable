@@ -354,6 +354,14 @@
 	    componentDidMount: function componentDidMount() {
 	        this.root = _reactDom2.default.findDOMNode(this);
 	    },
+	    componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+	        // disabled auto clear active state
+	        if (nextProps.disabled && this.state.active) {
+	            this.setState({
+	                active: false
+	            });
+	        }
+	    },
 	    componentDidUpdate: function componentDidUpdate() {
 	        this.root = _reactDom2.default.findDOMNode(this);
 	    },

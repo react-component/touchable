@@ -39,21 +39,21 @@ const Test = React.createClass({
   render() {
     return (
       <div style={{margin: '20px'}}>
-        <div ref="log" style={{height:100,overflow:'auto',margin: 10}}/>
+        <div ref="log" style={{height: 100, overflow: 'auto', margin: 10}}/>
         <style dangerouslySetInnerHTML={{__html: style}}/>
         <Touchable
-          activeStyle={{border:'1px solid yellow', padding:5}}
+          activeStyle={{border: '1px solid yellow', padding: 5}}
           activeClassName="active"
           onPress={this.onPress}
           onLongPress={this.onLongPress}
         >
           <div
             style={{
-              width:100,
-              height:100,
-              border:'1px solid red',
-              boxSizing:'border-box',
-              WebkitUserSelect:'none',
+              width: 100,
+              height: 100,
+              border: '1px solid red',
+              boxSizing: 'border-box',
+              WebkitUserSelect: 'none',
             }}
           >click
           </div>

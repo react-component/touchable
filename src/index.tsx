@@ -236,6 +236,15 @@ const Touchable = React.createClass<ITouchable, any>({
     this.root = ReactDOM.findDOMNode(this);
   },
 
+  componentWillReceiveProps(nextProps) {
+    // disabled auto clear active state
+    if (nextProps.disabled && this.state.active) {
+      this.setState({
+        active: false,
+      });
+    }
+  },
+
   componentDidUpdate() {
     this.root = ReactDOM.findDOMNode(this);
   },

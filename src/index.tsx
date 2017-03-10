@@ -482,7 +482,9 @@ const Touchable = React.createClass<ITouchable, any>({
   },
 
   touchableHandleActivePressIn(e) {
-    this.setActive(true);
+    if (!this.props.disabled) {
+      this.setActive(true);
+    }
     if (this.props.onPressIn) {
       this.props.onPressIn(e);
     }
@@ -655,7 +657,7 @@ const Touchable = React.createClass<ITouchable, any>({
         'onMouseDown',
       ]);
     const child = React.Children.only(children);
-    if (this.state.active) {
+    if (!disabled && this.state.active) {
       let { style, className } = child.props;
       if (activeStyle) {
         style = assign({}, style, activeStyle);

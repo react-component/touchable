@@ -236,15 +236,6 @@ const Touchable = React.createClass<ITouchable, any>({
     this.root = ReactDOM.findDOMNode(this);
   },
 
-  componentWillReceiveProps(nextProps) {
-    // disabled auto clear active state
-    if (nextProps.disabled && !this.props.disabled && this.state.active) {
-      this.setState({
-        active: false,
-      });
-    }
-  },
-
   componentDidUpdate() {
     this.root = ReactDOM.findDOMNode(this);
   },
@@ -481,33 +472,29 @@ const Touchable = React.createClass<ITouchable, any>({
     }
   },
 
+  callProp(name, e) {
+    if (this.props[name] && !this.props.disabled) {
+      this.props[name](e);
+    }
+  },
+
   touchableHandleActivePressIn(e) {
-    if (!this.props.disabled) {
-      this.setActive(true);
-    }
-    if (this.props.onPressIn) {
-      this.props.onPressIn(e);
-    }
+    this.setActive(true);
+    this.callProp('onPressIn', e);
   },
 
   touchableHandleActivePressOut(e) {
     this.setActive(false);
-    if (this.props.onPressOut) {
-      this.props.onPressOut(e);
-    }
+    this.callProp('onPressOut', e);
   },
 
   touchableHandlePress(e) {
-    if (this.props.onPress) {
-      this.props.onPress(e);
-    }
+    this.callProp('onPress', e);
     lastClickTime = Date.now();
   },
 
   touchableHandleLongPress(e) {
-    if (this.props.onLongPress) {
-      this.props.onLongPress(e);
-    }
+    this.callProp('onLongPress', e);
   },
 
   setActive(active) {

@@ -60,11 +60,11 @@ const Test = React.createClass({
           onLongPress={this.onLongPress}
           disabled={value === min}
         >
-          <a
+          <button
             className={`foo-button ${value === min ? 'disabled' : ''}`}
             role="button">
               prev page
-          </a>
+          </button>
         </Touchable>
         <div>Now page: {value} </div>
         <Touchable
@@ -74,11 +74,11 @@ const Test = React.createClass({
           onLongPress={this.onLongPress}
           disabled={value === max}
         >
-          <a
+          <button
             className={`foo-button ${value === max ? 'disabled' : ''}`}
             role="button">
               next page
-          </a>
+          </button>
         </Touchable>
       </div>
     );

@@ -28,3 +28,4 @@ coverage
 yarn.lock
 .vscode
 src/*.js
+/es/

@@ -2,7 +2,7 @@ import expect from 'expect.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Touchable from '../index';
-import TestUtils from 'react-addons-test-utils';
+import TestUtils from 'react-dom/test-utils';
 
 describe('Touchable', () => {
   let container;

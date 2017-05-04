@@ -172,6 +172,7 @@ const LONG_PRESS_ALLOWED_MOVEMENT = 10;
 // Default amount "active" region protrudes beyond box
 
 export interface ITouchable {
+  fixClickPenetration?: boolean;
   disabled?: boolean;
   delayPressIn?: number;
   delayLongPress?: number;
@@ -206,6 +207,7 @@ function isAllowPress() {
 
 export default class Touchable extends React.Component<ITouchable, any> {
   static defaultProps = {
+    fixClickPenetration: false,
     disabled: false,
     delayPressIn: HIGHLIGHT_DELAY_MS,
     delayLongPress: LONG_PRESS_DELAY_MS,
@@ -223,6 +225,15 @@ export default class Touchable extends React.Component<ITouchable, any> {
   state = {
     active: false,
   };
+
+  touchable: any;
+  root: any;
+  releaseLockTimer: any;
+  touchableDelayTimeout: any;
+  longPressDelayTimeout: any;
+  pressOutDelayTimeout: any;
+  lockMouse: any;
+  pressInLocation: { pageX: number; pageY: number; };
 
   componentWillMount() {
     this.touchable = { touchState: undefined };
@@ -261,13 +272,13 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   callChildEvent(event, e) {
-    const childHandle = this.props.children.props[event];
+    const childHandle = React.Children.only(this.props.children).props[event];
     if (childHandle) {
       childHandle(e);
     }
   }
 
-  onTouchStart(e) {
+  onTouchStart = (e) => {
     this.callChildEvent('onTouchStart', e);
     this.lockMouse = true;
     if (this.releaseLockTimer) {
@@ -276,12 +287,12 @@ export default class Touchable extends React.Component<ITouchable, any> {
     this.touchableHandleResponderGrant(e.nativeEvent);
   }
 
-  onTouchMove(e) {
+  onTouchMove = (e) => {
     this.callChildEvent('onTouchMove', e);
     this.touchableHandleResponderMove(e.nativeEvent);
   }
 
-  onTouchEnd(e) {
+  onTouchEnd = (e) => {
     this.callChildEvent('onTouchEnd', e);
     this.releaseLockTimer = setTimeout(() => {
       this.lockMouse = false;
@@ -289,7 +300,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
     this.touchableHandleResponderRelease(e.nativeEvent);
   }
 
-  onTouchCancel(e) {
+  onTouchCancel = (e) => {
     this.callChildEvent('onTouchCancel', e);
     this.releaseLockTimer = setTimeout(() => {
       this.lockMouse = false;
@@ -297,7 +308,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
     this.touchableHandleResponderTerminate(e.nativeEvent);
   }
 
-  onMouseDown(e) {
+  onMouseDown = (e) => {
     this.callChildEvent('onMouseDown', e);
     if (this.lockMouse) {
       return;
@@ -307,7 +318,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
     document.addEventListener('mouseup', this.onMouseUp, false);
   }
 
-  onMouseUp(e) {
+  onMouseUp = (e) => {
     document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
     document.removeEventListener('mouseup', this.onMouseUp, false);
     this.touchableHandleResponderRelease(e);
@@ -406,7 +417,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
 
   checkTouchWithinActive(e) {
     const { positionOnGrant } = this.touchable;
-    const { pressRetentionOffset, hitSlop } = this.props;
+    const { pressRetentionOffset = {} as any, hitSlop } = this.props;
 
     let pressExpandLeft = pressRetentionOffset.left;
     let pressExpandTop = pressRetentionOffset.top;
@@ -437,7 +448,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
     );
   }
 
-  touchableHandleResponderMove(e) {
+  touchableHandleResponderMove = (e) => {
     if (!this.touchable.startMouse) {
       return;
     }

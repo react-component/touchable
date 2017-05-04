@@ -1,6 +1,6 @@
 {
   "name": "rc-touchable",
-  "version": "1.0.13",
+  "version": "1.1.0",
   "description": "React Touchable Component",
   "keywords": [
     "react",
@@ -18,9 +18,11 @@
   },
   "license": "MIT",
   "files": [
-    "lib"
+    "lib",
+    "es"
   ],
   "main": "./lib/index",
+  "module": "./es/index",
   "config": {
     "port": 8007
   },
@@ -31,9 +33,9 @@
     "start": "rc-tools run server",
     "pub": "rc-tools run pub --babel-runtime",
     "lint": "rc-tools run lint --no-js-lint",
-    "test": "rc-tools run test",
-    "chrome-test": "rc-tools run chrome-test",
-    "coverage": "rc-tools run coverage"
+    "test": "rc-test run test",
+    "chrome-test": "rc-test run chrome-test",
+    "coverage": "rc-test run coverage"
   },
   "devDependencies": {
     "@types/mocha": "~2.2.32",
@@ -41,9 +43,9 @@
     "@types/react-dom": "~0.14.18",
     "expect.js": "~0.3.1",
     "pre-commit": "1.x",
-    "rc-tools": "5.x",
+    "rc-tools": "6.x",
+    "rc-test": "6.x",
     "react": "15.x",
-    "react-addons-test-utils": "15.x",
     "react-dom": "15.x"
   },
   "pre-commit": [

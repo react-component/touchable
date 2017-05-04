@@ -24,8 +24,14 @@ const Test = React.createClass({
       min: 1,
     };
   },
-  onPress(e) {
-    console.log('onPress', e);
+  onPressPrev(e) {
+    console.log('onPressPrev', e);
+    this.prev();
+  },
+
+  onPressNext(e) {
+    console.log('onPressNext', e);
+    this.next();
   },
 
   onLongPress(e) {
@@ -50,13 +56,12 @@ const Test = React.createClass({
         <Touchable
           activeStyle={{border: '1px solid yellow', padding: 5}}
           activeClassName="active"
-          onPress={this.onPress}
+          onPress={this.onPressPrev}
           onLongPress={this.onLongPress}
           disabled={value === min}
         >
           <a
             className={`foo-button ${value === min ? 'disabled' : ''}`}
-            onClick={value === min ? undefined : this.prev}
             role="button">
               prev page
           </a>
@@ -65,13 +70,12 @@ const Test = React.createClass({
         <Touchable
           activeStyle={{border: '1px solid yellow', padding: 5}}
           activeClassName="active"
-          onPress={this.onPress}
+          onPress={this.onPressNext}
           onLongPress={this.onLongPress}
           disabled={value === max}
         >
           <a
             className={`foo-button ${value === max ? 'disabled' : ''}`}
-            onClick={value === max ? undefined : this.next}
             role="button">
               next page
           </a>

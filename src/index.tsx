@@ -204,37 +204,33 @@ function isAllowPress() {
   return Date.now() - lastClickTime >= pressDelay;
 }
 
-const Touchable = React.createClass<ITouchable, any>({
-  getDefaultProps() {
-    return {
-      disabled: false,
-      delayPressIn: HIGHLIGHT_DELAY_MS,
-      delayLongPress: LONG_PRESS_DELAY_MS,
-      delayPressOut: 100,
-      pressRetentionOffset: {
-        left: PRESS_EXPAND_PX,
-        right: PRESS_EXPAND_PX,
-        top: PRESS_EXPAND_PX,
-        bottom: PRESS_EXPAND_PX,
-      },
-      hitSlop: undefined,
-      longPressCancelsPress: true,
-    };
-  },
+export default class Touchable extends React.Component<ITouchable, any> {
+  static defaultProps = {
+    disabled: false,
+    delayPressIn: HIGHLIGHT_DELAY_MS,
+    delayLongPress: LONG_PRESS_DELAY_MS,
+    delayPressOut: 100,
+    pressRetentionOffset: {
+      left: PRESS_EXPAND_PX,
+      right: PRESS_EXPAND_PX,
+      top: PRESS_EXPAND_PX,
+      bottom: PRESS_EXPAND_PX,
+    },
+    hitSlop: undefined,
+    longPressCancelsPress: true,
+  };
 
-  getInitialState() {
-    return {
-      active: false,
-    };
-  },
+  state = {
+    active: false,
+  };
 
   componentWillMount() {
     this.touchable = { touchState: undefined };
-  },
+  }
 
   componentDidMount() {
     this.root = ReactDOM.findDOMNode(this);
-  },
+  }
 
   componentWillReceiveProps(nextProps) {
     // disabled auto clear active state
@@ -243,11 +239,11 @@ const Touchable = React.createClass<ITouchable, any>({
         active: false,
       });
     }
-  },
+  }
 
   componentDidUpdate() {
     this.root = ReactDOM.findDOMNode(this);
-  },
+  }
 
   componentWillUnmount() {
     if (this.releaseLockTimer) {
@@ -262,14 +258,14 @@ const Touchable = React.createClass<ITouchable, any>({
     if (this.pressOutDelayTimeout) {
       clearTimeout(this.pressOutDelayTimeout);
     }
-  },
+  }
 
   callChildEvent(event, e) {
     const childHandle = this.props.children.props[event];
     if (childHandle) {
       childHandle(e);
     }
-  },
+  }
 
   onTouchStart(e) {
     this.callChildEvent('onTouchStart', e);
@@ -278,12 +274,12 @@ const Touchable = React.createClass<ITouchable, any>({
       clearTimeout(this.releaseLockTimer);
     }
     this.touchableHandleResponderGrant(e.nativeEvent);
-  },
+  }
 
   onTouchMove(e) {
     this.callChildEvent('onTouchMove', e);
     this.touchableHandleResponderMove(e.nativeEvent);
-  },
+  }
 
   onTouchEnd(e) {
     this.callChildEvent('onTouchEnd', e);
@@ -291,7 +287,7 @@ const Touchable = React.createClass<ITouchable, any>({
       this.lockMouse = false;
     }, 300);
     this.touchableHandleResponderRelease(e.nativeEvent);
-  },
+  }
 
   onTouchCancel(e) {
     this.callChildEvent('onTouchCancel', e);
@@ -299,7 +295,7 @@ const Touchable = React.createClass<ITouchable, any>({
       this.lockMouse = false;
     }, 300);
     this.touchableHandleResponderTerminate(e.nativeEvent);
-  },
+  }
 
   onMouseDown(e) {
     this.callChildEvent('onMouseDown', e);
@@ -309,13 +305,13 @@ const Touchable = React.createClass<ITouchable, any>({
     this.touchableHandleResponderGrant(e.nativeEvent);
     document.addEventListener('mousemove', this.touchableHandleResponderMove, false);
     document.addEventListener('mouseup', this.onMouseUp, false);
-  },
+  }
 
   onMouseUp(e) {
     document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
     document.removeEventListener('mouseup', this.onMouseUp, false);
     this.touchableHandleResponderRelease(e);
-  },
+  }
 
   _remeasureMetricsOnInit(e) {
     const { root } = this;
@@ -336,7 +332,7 @@ const Touchable = React.createClass<ITouchable, any>({
         clientTop: boundingRect.top,
       },
     };
-  },
+  }
 
   touchableHandleResponderGrant(e) {
     this.touchable.touchState = States.NOT_RESPONDER;
@@ -372,7 +368,7 @@ const Touchable = React.createClass<ITouchable, any>({
       },
       longDelayMS + delayMS,
     );
-  },
+  }
 
   checkScroll(e) {
     const positionOnGrant = this.touchable.positionOnGrant;
@@ -382,7 +378,7 @@ const Touchable = React.createClass<ITouchable, any>({
       this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
       return false;
     }
-  },
+  }
 
   touchableHandleResponderRelease(e) {
     if (!this.touchable.startMouse) {
@@ -399,14 +395,14 @@ const Touchable = React.createClass<ITouchable, any>({
       return;
     }
     this._receiveSignal(Signals.RESPONDER_RELEASE, e);
-  },
+  }
 
   touchableHandleResponderTerminate(e) {
     if (!this.touchable.startMouse) {
       return;
     }
     this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-  },
+  }
 
   checkTouchWithinActive(e) {
     const { positionOnGrant } = this.touchable;
@@ -439,7 +435,7 @@ const Touchable = React.createClass<ITouchable, any>({
       positionOnGrant.height +
       pressExpandBottom
     );
-  },
+  }
 
   touchableHandleResponderMove(e) {
     if (!this.touchable.startMouse) {
@@ -479,32 +475,32 @@ const Touchable = React.createClass<ITouchable, any>({
       this._cancelLongPressDelayTimeout();
       this._receiveSignal(Signals.LEAVE_PRESS_RECT, e);
     }
-  },
+  }
 
   callProp(name, e) {
     if (this.props[name] && !this.props.disabled) {
       this.props[name](e);
     }
-  },
+  }
 
   touchableHandleActivePressIn(e) {
     this.setActive(true);
     this.callProp('onPressIn', e);
-  },
+  }
 
   touchableHandleActivePressOut(e) {
     this.setActive(false);
     this.callProp('onPressOut', e);
-  },
+  }
 
   touchableHandlePress(e) {
     this.callProp('onPress', e);
     lastClickTime = Date.now();
-  },
+  }
 
   touchableHandleLongPress(e) {
     this.callProp('onLongPress', e);
-  },
+  }
 
   setActive(active) {
     if (this.props.activeClassName || this.props.activeStyle) {
@@ -512,16 +508,16 @@ const Touchable = React.createClass<ITouchable, any>({
         active,
       });
     }
-  },
+  }
 
   _remeasureMetricsOnActivation() {
     this.touchable.dimensionsOnActivate = this.touchable.positionOnGrant;
-  },
+  }
 
   _handleDelay(e) {
     this.touchableDelayTimeout = null;
     this._receiveSignal(Signals.DELAY, e);
-  },
+  }
 
   _handleLongDelay(e) {
     this.longPressDelayTimeout = null;
@@ -534,7 +530,7 @@ const Touchable = React.createClass<ITouchable, any>({
     } else {
       this._receiveSignal(Signals.LONG_PRESS_DETECTED, e);
     }
-  },
+  }
 
   _receiveSignal(signal, e) {
     const curState = this.touchable.touchState;
@@ -549,32 +545,32 @@ const Touchable = React.createClass<ITouchable, any>({
       this._performSideEffectsForTransition(curState, nextState, signal, e);
       this.touchable.touchState = nextState;
     }
-  },
+  }
 
   _cancelLongPressDelayTimeout() {
     if (this.longPressDelayTimeout) {
       clearTimeout(this.longPressDelayTimeout);
       this.longPressDelayTimeout = null;
     }
-  },
+  }
 
   _isHighlight(state) {
     return state === States.RESPONDER_ACTIVE_PRESS_IN ||
       state === States.RESPONDER_ACTIVE_LONG_PRESS_IN;
-  },
+  }
 
   _savePressInLocation(e) {
     const touch = extractSingleTouch(e);
     const pageX = touch && touch.pageX;
     const pageY = touch && touch.pageY;
     this.pressInLocation = { pageX, pageY };
-  },
+  }
 
   _getDistanceBetweenPoints(aX, aY, bX, bY) {
     const deltaX = aX - bX;
     const deltaY = aY - bY;
     return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-  },
+  }
 
   _performSideEffectsForTransition(curState, nextState, signal, e) {
     const curIsHighlight = this._isHighlight(curState);
@@ -625,12 +621,12 @@ const Touchable = React.createClass<ITouchable, any>({
       clearTimeout(this.touchableDelayTimeout);
       this.touchableDelayTimeout = null;
     }
-  },
+  }
 
   _startHighlight(e) {
     this._savePressInLocation(e);
     this.touchableHandleActivePressIn(e);
-  },
+  }
 
   _endHighlight(e) {
     if (this.props.delayPressOut) {
@@ -640,7 +636,7 @@ const Touchable = React.createClass<ITouchable, any>({
     } else {
       this.touchableHandleActivePressOut(e);
     }
-  },
+  }
 
   render() {
     const { children, disabled, activeStyle, activeClassName } = this.props;
@@ -671,7 +667,5 @@ const Touchable = React.createClass<ITouchable, any>({
       }, events));
     }
     return React.cloneElement(child, events);
-  },
-});
-
-export default Touchable;
+  }
+}

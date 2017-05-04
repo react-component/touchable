@@ -3,12 +3,12 @@ webpackJsonp([1],{
 /***/ 0:
 /***/ (function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(267);
+	module.exports = __webpack_require__(181);
 
 
 /***/ }),
 
-/***/ 267:
+/***/ 181:
 /***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17,11 +17,11 @@ webpackJsonp([1],{
 	
 	var _rcTouchable2 = _interopRequireDefault(_rcTouchable);
 	
-	var _react = __webpack_require__(86);
+	var _react = __webpack_require__(4);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _reactDom = __webpack_require__(121);
+	var _reactDom = __webpack_require__(35);
 	
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 	
@@ -38,8 +38,13 @@ webpackJsonp([1],{
 	            min: 1
 	        };
 	    },
-	    onPress: function onPress(e) {
-	        console.log('onPress', e);
+	    onPressPrev: function onPressPrev(e) {
+	        console.log('onPressPrev', e);
+	        this.prev();
+	    },
+	    onPressNext: function onPressNext(e) {
+	        console.log('onPressNext', e);
+	        this.next();
 	    },
 	    onLongPress: function onLongPress(e) {
 	        console.log('onLongPress', e);
@@ -60,7 +65,7 @@ webpackJsonp([1],{
 	            min = _state.min,
 	            max = _state.max;
 	
-	        return _react2['default'].createElement("div", { style: { margin: '20px' } }, _react2['default'].createElement("style", { dangerouslySetInnerHTML: { __html: style } }), _react2['default'].createElement(_rcTouchable2['default'], { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPress, onLongPress: this.onLongPress, disabled: value === min }, _react2['default'].createElement("a", { className: 'foo-button ' + (value === min ? 'disabled' : ''), onClick: value === min ? undefined : this.prev, role: "button" }, "prev page")), _react2['default'].createElement("div", null, "Now page: ", value, " "), _react2['default'].createElement(_rcTouchable2['default'], { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPress, onLongPress: this.onLongPress, disabled: value === max }, _react2['default'].createElement("a", { className: 'foo-button ' + (value === max ? 'disabled' : ''), onClick: value === max ? undefined : this.next, role: "button" }, "next page")));
+	        return _react2['default'].createElement("div", { style: { margin: '20px' } }, _react2['default'].createElement("style", { dangerouslySetInnerHTML: { __html: style } }), _react2['default'].createElement(_rcTouchable2['default'], { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPressPrev, onLongPress: this.onLongPress, disabled: value === min }, _react2['default'].createElement("a", { className: 'foo-button ' + (value === min ? 'disabled' : ''), role: "button" }, "prev page")), _react2['default'].createElement("div", null, "Now page: ", value, " "), _react2['default'].createElement(_rcTouchable2['default'], { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPressNext, onLongPress: this.onLongPress, disabled: value === max }, _react2['default'].createElement("a", { className: 'foo-button ' + (value === max ? 'disabled' : ''), role: "button" }, "next page")));
 	    }
 	});
 	_reactDom2['default'].render(_react2['default'].createElement(Test, null), document.getElementById('__react-content'));

@@ -243,17 +243,14 @@ export default class Touchable extends React.Component<ITouchable, any> {
     this.root = ReactDOM.findDOMNode(this);
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentDidUpdate() {
+    this.root = ReactDOM.findDOMNode(this);
     // disabled auto clear active state
-    if (nextProps.disabled && this.state.active) {
+    if (this.props.disabled && this.state.active) {
       this.setState({
         active: false,
       });
     }
-  }
-
-  componentDidUpdate() {
-    this.root = ReactDOM.findDOMNode(this);
   }
 
   componentWillUnmount() {

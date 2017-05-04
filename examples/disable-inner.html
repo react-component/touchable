@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>disable.js - example - rc-touchable@1.1.0</title>
+  <title>disable-inner.js - example - rc-touchable@1.1.1</title>
   <meta name="viewport"
         content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
   <meta charset="utf-8"/>
@@ -263,7 +263,7 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
 <body>
   <div class="container">
     <div class="header">
-      <h1>rc-touchable@1.1.0</h1>
+      <h1>rc-touchable@1.1.1</h1>
 
       <p>React Touchable Component</p>
     </div>
@@ -318,7 +318,12 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
       value: <span class="hljs-keyword">this</span>.state.value + <span class="hljs-number">1</span>,
     });
   },
-
+  handlePressOuterPrev() {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'handlePressOuterPrev'</span>);
+  },
+  handlePressOuterNext() {
+    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">'handlePressOuterNext'</span>);
+  },
   render() {
     <span class="hljs-keyword">const</span> { value, min, max } = <span class="hljs-keyword">this</span>.state;
     <span class="hljs-keyword">return</span> (
@@ -327,29 +332,31 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
         &lt;<span class="hljs-tag">Touchable</span>
           <span class="hljs-tag">activeStyle</span>=<span class="hljs-rules">{{<span class="hljs-rule"><span class="hljs-attribute">border</span>:<span class="hljs-value"> <span class="hljs-string">'1px solid yellow'</span>, padding: <span class="hljs-number">5</span></span></span></span>}}
           <span class="hljs-tag">activeClassName</span>="<span class="hljs-tag">active</span>"
-          <span class="hljs-tag">onPress</span>=<span class="hljs-rules">{this.onPressPrev}</span>
-          <span class="hljs-tag">onLongPress</span>=<span class="hljs-rules">{this.onLongPress}</span>
+          <span class="hljs-tag">onPress</span>=<span class="hljs-rules">{this.handlePressOuterPrev}</span>
           <span class="hljs-tag">disabled</span>=<span class="hljs-rules">{value === min}</span>
         &gt;
-          &lt;<span class="hljs-tag">a</span>
+          &lt;<span class="hljs-tag">button</span>
             <span class="hljs-tag">className</span>=<span class="hljs-rules">{`foo-button ${value === min ? 'disabled' : ''}</span>`}
-            <span class="hljs-tag">role</span>="<span class="hljs-tag">button</span>"&gt;
+            <span class="hljs-tag">role</span>="<span class="hljs-tag">button</span>"
+            <span class="hljs-tag">onClick</span>=<span class="hljs-rules">{value === min ? <span class="hljs-rule"><span class="hljs-attribute">undefined </span>:<span class="hljs-value"> this.onPressPrev</span></span></span>}
+          &gt;
               <span class="hljs-tag">prev</span> <span class="hljs-tag">page</span>
-          &lt;/<span class="hljs-tag">a</span>&gt;
+          &lt;/<span class="hljs-tag">button</span>&gt;
         &lt;/<span class="hljs-tag">Touchable</span>&gt;
         &lt;<span class="hljs-tag">div</span>&gt;<span class="hljs-tag">Now</span> <span class="hljs-tag">page</span>: <span class="hljs-rules">{value}</span> &lt;/<span class="hljs-tag">div</span>&gt;
         &lt;<span class="hljs-tag">Touchable</span>
           <span class="hljs-tag">activeStyle</span>=<span class="hljs-rules">{{<span class="hljs-rule"><span class="hljs-attribute">border</span>:<span class="hljs-value"> <span class="hljs-string">'1px solid yellow'</span>, padding: <span class="hljs-number">5</span></span></span></span>}}
           <span class="hljs-tag">activeClassName</span>="<span class="hljs-tag">active</span>"
-          <span class="hljs-tag">onPress</span>=<span class="hljs-rules">{this.onPressNext}</span>
-          <span class="hljs-tag">onLongPress</span>=<span class="hljs-rules">{this.onLongPress}</span>
+          <span class="hljs-tag">onPress</span>=<span class="hljs-rules">{this.handlePressOuterNext}</span>
           <span class="hljs-tag">disabled</span>=<span class="hljs-rules">{value === max}</span>
         &gt;
-          &lt;<span class="hljs-tag">a</span>
+          &lt;<span class="hljs-tag">button</span>
             <span class="hljs-tag">className</span>=<span class="hljs-rules">{`foo-button ${value === max ? 'disabled' : ''}</span>`}
-            <span class="hljs-tag">role</span>="<span class="hljs-tag">button</span>"&gt;
+            <span class="hljs-tag">role</span>="<span class="hljs-tag">button</span>"
+            <span class="hljs-tag">onClick</span>=<span class="hljs-rules">{value === max ? <span class="hljs-rule"><span class="hljs-attribute">undefined </span>:<span class="hljs-value"> this.onPressNext</span></span></span>}
+          &gt;
               <span class="hljs-tag">next</span> <span class="hljs-tag">page</span>
-          &lt;/<span class="hljs-tag">a</span>&gt;
+          &lt;/<span class="hljs-tag">button</span>&gt;
         &lt;/<span class="hljs-tag">Touchable</span>&gt;
       &lt;/<span class="hljs-tag">div</span>&gt;
     )</span></span>;
@@ -367,7 +374,7 @@ ReactDOM.render(<span class="xml"><span class="css">&lt;<span class="hljs-tag">T
   </a>
   <script>FastClick.attach(document.body);</script>
   <script src="common.js?nowrap"></script>
-  <script src="disable.js?nowrap"></script>
+  <script src="disable-inner.js?nowrap"></script>
 </body>
 
 </html>

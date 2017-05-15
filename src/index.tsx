@@ -5,6 +5,7 @@
 import React from 'react';
 import assign from 'object-assign';
 import ReactDOM from 'react-dom';
+import PressEvent, { shouldFirePress } from './PressEvent';
 
 function keyMirror(obj) {
   Object.keys(obj).forEach(k => obj[k] = k);
@@ -19,7 +20,11 @@ function copy(from, list) {
   return to;
 }
 
-function extractSingleTouch(nativeEvent) {
+function extractSingleTouch(_nativeEvent) {
+  let nativeEvent = _nativeEvent;
+  if (nativeEvent.nativeEvent) {
+    nativeEvent = nativeEvent.nativeEvent;
+  }
   const touches = nativeEvent.touches;
   const changedTouches = nativeEvent.changedTouches;
   const hasTouches = touches && touches.length > 0;
@@ -318,7 +323,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
   onMouseUp = (e) => {
     document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
     document.removeEventListener('mouseup', this.onMouseUp, false);
-    this.touchableHandleResponderRelease(e);
+    this.touchableHandleResponderRelease(new PressEvent(e));
   }
 
   _remeasureMetricsOnInit(e) {
@@ -369,10 +374,11 @@ export default class Touchable extends React.Component<ITouchable, any> {
       this._handleDelay(e);
     }
 
+    const longPressEvent = new PressEvent(e);
     const longDelayMS = this.props.delayLongPress;
     this.longPressDelayTimeout = setTimeout(
       () => {
-        this._handleLongDelay(e);
+        this._handleLongDelay(longPressEvent);
       },
       longDelayMS + delayMS,
     );
@@ -502,12 +508,16 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   touchableHandlePress(e) {
-    this.callProp('onPress', e);
+    if (shouldFirePress(e)) {
+      this.callProp('onPress', e);
+    }
     lastClickTime = Date.now();
   }
 
   touchableHandleLongPress(e) {
-    this.callProp('onLongPress', e);
+    if (shouldFirePress(e)) {
+      this.callProp('onLongPress', e);
+    }
   }
 
   setActive(active) {

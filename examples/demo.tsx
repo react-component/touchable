@@ -24,41 +24,52 @@ const Test = React.createClass({
   },
 
   onPress(e) {
-    this.log('onPress', e);
+    e.stopPropagation();
+    console.log(e.type, e.target.id);
   },
 
   onLongPress(e) {
-    this.log('onLongPress', e);
-  },
-
-  log(m) {
-    this.refs.log.innerHTML += `<p>${m}:${Date.now()}</p>`;
-    this.refs.log.scrollTop = this.refs.log.scrollHeight;
+    e.stopPropagation();
+    console.log(e.type, e.target.id);
   },
 
   render() {
     return (
       <div style={{margin: '20px'}}>
         <div ref="log" style={{height: 100, overflow: 'auto', margin: 10}}/>
-        <style dangerouslySetInnerHTML={{__html: style}}/>
         <Touchable
-          activeStyle={{border: '1px solid yellow', padding: 5}}
-          activeClassName="active"
           onPress={this.onPress}
           onLongPress={this.onLongPress}
         >
           <div
+            id="outer"
             style={{
+              padding: 100,
+              border: '1px solid red',
+              boxSizing: 'border-box',
+              WebkitUserSelect: 'none',
+            }}
+          >
+            <Touchable
+              activeStyle={{border: '1px solid yellow', padding: 5}}
+              activeClassName="active"
+              onPress={this.onPress}
+              onLongPress={this.onLongPress}
+            >
+              <div
+                id="inner"
+                style={{
               width: 100,
               height: 100,
               border: '1px solid red',
               boxSizing: 'border-box',
               WebkitUserSelect: 'none',
             }}
-          >click
+              >click
+              </div>
+            </Touchable>
           </div>
         </Touchable>
-
         <br/><br/>
 
         <div tabIndex={0} className="x" onClick={() => { this.log('onClick'); }}>click</div>

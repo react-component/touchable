@@ -22,25 +22,28 @@ var Test = __WEBPACK_IMPORTED_MODULE_1_react___default.a.createClass({
         window.log = this.log;
     },
     onPress: function onPress(e) {
-        this.log('onPress', e);
+        e.stopPropagation();
+        console.log(e.type, e.target.id);
     },
     onLongPress: function onLongPress(e) {
-        this.log('onLongPress', e);
-    },
-    log: function log(m) {
-        this.refs.log.innerHTML += '<p>' + m + ':' + Date.now() + '</p>';
-        this.refs.log.scrollTop = this.refs.log.scrollHeight;
+        e.stopPropagation();
+        console.log(e.type, e.target.id);
     },
     render: function render() {
         var _this = this;
 
-        return __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { style: { margin: '20px' } }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { ref: "log", style: { height: 100, overflow: 'auto', margin: 10 } }), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("style", { dangerouslySetInnerHTML: { __html: style } }), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_0_rc_touchable___default.a, { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPress, onLongPress: this.onLongPress }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { style: {
+        return __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { style: { margin: '20px' } }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { ref: "log", style: { height: 100, overflow: 'auto', margin: 10 } }), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_0_rc_touchable___default.a, { onPress: this.onPress, onLongPress: this.onLongPress }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { id: "outer", style: {
+                padding: 100,
+                border: '1px solid red',
+                boxSizing: 'border-box',
+                WebkitUserSelect: 'none'
+            } }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_0_rc_touchable___default.a, { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", onPress: this.onPress, onLongPress: this.onLongPress }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { id: "inner", style: {
                 width: 100,
                 height: 100,
                 border: '1px solid red',
                 boxSizing: 'border-box',
                 WebkitUserSelect: 'none'
-            } }, "click")), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("br", null), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("br", null), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { tabIndex: 0, className: "x", onClick: function onClick() {
+            } }, "click")))), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("br", null), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("br", null), __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { tabIndex: 0, className: "x", onClick: function onClick() {
                 _this.log('onClick');
             } }, "click"));
     }
@@ -49,7 +52,7 @@ __WEBPACK_IMPORTED_MODULE_2_react_dom___default.a.render(__WEBPACK_IMPORTED_MODU
 
 /***/ }),
 
-/***/ 268:
+/***/ 269:
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(122);
@@ -57,5 +60,5 @@ module.exports = __webpack_require__(122);
 
 /***/ })
 
-},[268]);
+},[269]);
 //# sourceMappingURL=demo.js.map

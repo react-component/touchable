@@ -28,7 +28,6 @@ assign(PressEvent.prototype, {
 
 export function shouldFirePress(e) {
   const { nativeEvent , $longPressSeq } = e;
-  
   if (!nativeEvent || !nativeEvent.$longPressStopSeq) {
     return true;
   }

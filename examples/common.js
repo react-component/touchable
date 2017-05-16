@@ -10247,12 +10247,12 @@ function PressEvent(nativeEvent) {
     ['type', 'currentTarget', 'target', 'touches', 'changedTouches'].forEach(function (m) {
         _this[m] = nativeEvent[m];
     });
-    if (!nativeEvent.$longPressSeq) {
-        nativeEvent.$longPressSeq = 1;
+    if (!nativeEvent.$pressSeq) {
+        nativeEvent.$pressSeq = 1;
     } else {
-        nativeEvent.$longPressSeq += 1;
+        nativeEvent.$pressSeq += 1;
     }
-    this.$longPressSeq = nativeEvent.$longPressSeq;
+    this.$pressSeq = nativeEvent.$pressSeq;
 }
 __WEBPACK_IMPORTED_MODULE_0_object_assign___default()(PressEvent.prototype, {
     preventDefault: function preventDefault() {
@@ -10260,22 +10260,22 @@ __WEBPACK_IMPORTED_MODULE_0_object_assign___default()(PressEvent.prototype, {
     },
     stopPropagation: function stopPropagation() {
         var nativeEvent = this.nativeEvent,
-            $longPressSeq = this.$longPressSeq;
+            $pressSeq = this.$pressSeq;
 
-        if (nativeEvent.$longPressStopSeq) {
+        if (nativeEvent.$stopPressSeq) {
             return;
         }
-        nativeEvent.$longPressStopSeq = $longPressSeq;
+        nativeEvent.$stopPressSeq = $pressSeq;
     }
 });
 function shouldFirePress(e) {
     var nativeEvent = e.nativeEvent,
-        $longPressSeq = e.$longPressSeq;
+        $pressSeq = e.$pressSeq;
 
-    if (!nativeEvent.$longPressStopSeq) {
+    if (!nativeEvent.$stopPressSeq) {
         return true;
     }
-    return nativeEvent.$longPressStopSeq >= $longPressSeq;
+    return nativeEvent.$stopPressSeq >= $pressSeq;
 }
 /* harmony default export */ __webpack_exports__["a"] = (PressEvent);
 
@@ -10499,7 +10499,7 @@ var Touchable = function (_React$Component) {
             _this.releaseLockTimer = setTimeout(function () {
                 _this.lockMouse = false;
             }, 300);
-            _this.touchableHandleResponderRelease(e.nativeEvent);
+            _this.touchableHandleResponderRelease(new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e.nativeEvent));
         };
         _this.onTouchCancel = function (e) {
             _this.callChildEvent('onTouchCancel', e);
@@ -10520,10 +10520,9 @@ var Touchable = function (_React$Component) {
         _this.onMouseUp = function (e) {
             document.removeEventListener('mousemove', _this.touchableHandleResponderMove, false);
             document.removeEventListener('mouseup', _this.onMouseUp, false);
-            _this.touchableHandleResponderRelease(e.nativeEvent);
+            _this.touchableHandleResponderRelease(new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e));
         };
         _this.touchableHandleResponderMove = function (e) {
-            e = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             if (!_this.touchable.startMouse) {
                 return;
             }
@@ -10632,7 +10631,6 @@ var Touchable = function (_React$Component) {
         value: function touchableHandleResponderGrant(e) {
             var _this2 = this;
 
-            e = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             this.touchable.touchState = States.NOT_RESPONDER;
             if (this.pressOutDelayTimeout) {
                 clearTimeout(this.pressOutDelayTimeout);
@@ -10651,9 +10649,10 @@ var Touchable = function (_React$Component) {
             } else {
                 this._handleDelay(e);
             }
+            var longPressEvent = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             var longDelayMS = this.props.delayLongPress;
             this.longPressDelayTimeout = setTimeout(function () {
-                _this2._handleLongDelay(e);
+                _this2._handleLongDelay(longPressEvent);
             }, longDelayMS + delayMS);
         }
     }, {
@@ -10670,7 +10669,6 @@ var Touchable = function (_React$Component) {
     }, {
         key: 'touchableHandleResponderRelease',
         value: function touchableHandleResponderRelease(e) {
-            e = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             if (!this.touchable.startMouse) {
                 return;
             }
@@ -10687,7 +10685,6 @@ var Touchable = function (_React$Component) {
     }, {
         key: 'touchableHandleResponderTerminate',
         value: function touchableHandleResponderTerminate(e) {
-            e = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             if (!this.touchable.startMouse) {
                 return;
             }

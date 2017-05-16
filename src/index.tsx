@@ -323,7 +323,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
   onMouseUp = (e) => {
     document.removeEventListener('mousemove', this.touchableHandleResponderMove, false);
     document.removeEventListener('mouseup', this.onMouseUp, false);
-    this.touchableHandleResponderRelease(new PressEvent(e));
+    this.touchableHandleResponderRelease(e.nativeEvent);
   }
 
   _remeasureMetricsOnInit(e) {
@@ -348,6 +348,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   touchableHandleResponderGrant(e) {
+    e = new PressEvent(e);
     this.touchable.touchState = States.NOT_RESPONDER;
 
     if (this.pressOutDelayTimeout) {
@@ -374,11 +375,10 @@ export default class Touchable extends React.Component<ITouchable, any> {
       this._handleDelay(e);
     }
 
-    const longPressEvent = new PressEvent(e);
     const longDelayMS = this.props.delayLongPress;
     this.longPressDelayTimeout = setTimeout(
       () => {
-        this._handleLongDelay(longPressEvent);
+        this._handleLongDelay(e);
       },
       longDelayMS + delayMS,
     );
@@ -395,6 +395,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   touchableHandleResponderRelease(e) {
+    e = new PressEvent(e);
     if (!this.touchable.startMouse) {
       return;
     }
@@ -412,6 +413,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   touchableHandleResponderTerminate(e) {
+    e = new PressEvent(e);
     if (!this.touchable.startMouse) {
       return;
     }
@@ -452,6 +454,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   touchableHandleResponderMove = (e) => {
+    e = new PressEvent(e);
     if (!this.touchable.startMouse) {
       return;
     }

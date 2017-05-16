@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Touchable from '../index';
 import TestUtils from 'react-dom/test-utils';
+import PressEvent from '../src/PressEvent';
 
 describe('Touchable', () => {
   let container;
@@ -38,9 +39,9 @@ describe('Touchable', () => {
     });
     setTimeout(() => {
       expect(t.className).to.be('t');
-      com.touchableHandleResponderRelease({
+      com.touchableHandleResponderRelease(new PressEvent({
         touches,
-      });
+      }));
     }, 200);
   });
 
@@ -75,9 +76,9 @@ describe('Touchable', () => {
     });
     setTimeout(() => {
       expect(t.className).to.be('t');
-      com.touchableHandleResponderRelease({
+      com.touchableHandleResponderRelease(new PressEvent({
         touches,
-      });
+      }));
     }, 600);
   });
 
@@ -129,10 +130,10 @@ describe('Touchable', () => {
         changedTouches: touches,
       });
       setTimeout(()=> {
-        com.touchableHandleResponderRelease({
+        com.touchableHandleResponderRelease(new PressEvent({
           touches,
           changedTouches: touches,
-        });
+        }));
       }, 700);
 
     }, 200);

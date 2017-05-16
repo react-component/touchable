@@ -27,8 +27,8 @@ assign(PressEvent.prototype, {
 });
 
 export function shouldFirePress(e) {
-  const { nativeEvent, $longPressSeq } = e;
-  if (!nativeEvent.$longPressStopSeq) {
+  const { nativeEvent , $longPressSeq } = e;
+  if (!nativeEvent || !nativeEvent.$longPressStopSeq) {
     return true;
   }
   return nativeEvent.$longPressStopSeq >= $longPressSeq;

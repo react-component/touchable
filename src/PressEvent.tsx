@@ -5,12 +5,12 @@ function PressEvent(nativeEvent) {
   ['type', 'currentTarget', 'target', 'touches', 'changedTouches'].forEach(m => {
     this[m] = nativeEvent[m];
   });
-  if (!nativeEvent.$longPressSeq) {
-    nativeEvent.$longPressSeq = 1;
+  if (!nativeEvent.$pressSeq) {
+    nativeEvent.$pressSeq = 1;
   } else {
-    nativeEvent.$longPressSeq += 1;
+    nativeEvent.$pressSeq += 1;
   }
-  this.$longPressSeq = nativeEvent.$longPressSeq;
+  this.$pressSeq = nativeEvent.$pressSeq;
 }
 
 assign(PressEvent.prototype, {
@@ -18,20 +18,20 @@ assign(PressEvent.prototype, {
     this.nativeEvent.preventDefault();
   },
   stopPropagation() {
-    const { nativeEvent, $longPressSeq } = this;
-    if (nativeEvent.$longPressStopSeq) {
+    const { nativeEvent, $pressSeq } = this;
+    if (nativeEvent.$stopPressSeq) {
       return;
     }
-    nativeEvent.$longPressStopSeq = $longPressSeq;
+    nativeEvent.$stopPressSeq = $pressSeq;
   },
 });
 
 export function shouldFirePress(e) {
-  const { nativeEvent, $longPressSeq } = e;
-  if (!nativeEvent.$longPressStopSeq) {
+  const { nativeEvent, $pressSeq } = e;
+  if (!nativeEvent.$stopPressSeq) {
     return true;
   }
-  return nativeEvent.$longPressStopSeq >= $longPressSeq;
+  return nativeEvent.$stopPressSeq >= $pressSeq;
 }
 
 export default PressEvent;

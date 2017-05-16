@@ -299,7 +299,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
     this.releaseLockTimer = setTimeout(() => {
       this.lockMouse = false;
     }, 300);
-    this.touchableHandleResponderRelease(e.nativeEvent);
+    this.touchableHandleResponderRelease(new PressEvent(e.nativeEvent));
   }
 
   onTouchCancel = (e) => {

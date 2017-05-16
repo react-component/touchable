@@ -10520,9 +10520,10 @@ var Touchable = function (_React$Component) {
         _this.onMouseUp = function (e) {
             document.removeEventListener('mousemove', _this.touchableHandleResponderMove, false);
             document.removeEventListener('mouseup', _this.onMouseUp, false);
-            _this.touchableHandleResponderRelease(new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e));
+            _this.touchableHandleResponderRelease(e.nativeEvent);
         };
         _this.touchableHandleResponderMove = function (e) {
+            e = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             if (!_this.touchable.startMouse) {
                 return;
             }
@@ -10631,6 +10632,7 @@ var Touchable = function (_React$Component) {
         value: function touchableHandleResponderGrant(e) {
             var _this2 = this;
 
+            e = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             this.touchable.touchState = States.NOT_RESPONDER;
             if (this.pressOutDelayTimeout) {
                 clearTimeout(this.pressOutDelayTimeout);
@@ -10649,10 +10651,9 @@ var Touchable = function (_React$Component) {
             } else {
                 this._handleDelay(e);
             }
-            var longPressEvent = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             var longDelayMS = this.props.delayLongPress;
             this.longPressDelayTimeout = setTimeout(function () {
-                _this2._handleLongDelay(longPressEvent);
+                _this2._handleLongDelay(e);
             }, longDelayMS + delayMS);
         }
     }, {
@@ -10669,6 +10670,7 @@ var Touchable = function (_React$Component) {
     }, {
         key: 'touchableHandleResponderRelease',
         value: function touchableHandleResponderRelease(e) {
+            e = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             if (!this.touchable.startMouse) {
                 return;
             }
@@ -10685,6 +10687,7 @@ var Touchable = function (_React$Component) {
     }, {
         key: 'touchableHandleResponderTerminate',
         value: function touchableHandleResponderTerminate(e) {
+            e = new __WEBPACK_IMPORTED_MODULE_7__PressEvent__["a" /* default */](e);
             if (!this.touchable.startMouse) {
                 return;
             }

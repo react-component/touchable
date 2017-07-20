@@ -40,6 +40,7 @@ const Test = React.createClass({
     return (
       <div style={{margin: '20px'}}>
         <div ref="log" style={{height: 100, overflow: 'auto', margin: 10}}/>
+        <style dangerouslySetInnerHTML={{__html: style}}/>
         <Touchable
           onPress={this.onPress}
           onLongPress={this.onLongPress}

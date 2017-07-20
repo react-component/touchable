@@ -32,7 +32,10 @@ const Test = React.createClass({
     e.stopPropagation();
     console.log(e.type, e.target.id);
   },
-
+  log(m) {
+    this.refs.log.innerHTML += `<p>${m}:${Date.now()}</p>`;
+    this.refs.log.scrollTop = this.refs.log.scrollHeight;
+  },
   render() {
     return (
       <div style={{margin: '20px'}}>

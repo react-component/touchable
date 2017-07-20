@@ -1,5 +1,3 @@
-import assign from 'object-assign';
-
 function PressEvent(nativeEvent) {
   this.nativeEvent = nativeEvent;
   ['type', 'currentTarget', 'target', 'touches', 'changedTouches'].forEach(m => {
@@ -13,7 +11,8 @@ function PressEvent(nativeEvent) {
   this.$pressSeq = nativeEvent.$pressSeq;
 }
 
-assign(PressEvent.prototype, {
+PressEvent.prototype = {
+  ...PressEvent.prototype,
   preventDefault() {
     this.nativeEvent.preventDefault();
   },
@@ -24,7 +23,7 @@ assign(PressEvent.prototype, {
     }
     nativeEvent.$stopPressSeq = $pressSeq;
   },
-});
+};
 
 export function shouldFirePress(e) {
   const { nativeEvent, $pressSeq } = e;

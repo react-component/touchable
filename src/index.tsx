@@ -1,9 +1,6 @@
 // inspired by react-native
 
-'use strict';
-
 import React from 'react';
-import assign from 'object-assign';
 import ReactDOM from 'react-dom';
 import PressEvent, { shouldFirePress } from './PressEvent';
 
@@ -362,7 +359,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
     this._remeasureMetricsOnInit(e);
 
     this._receiveSignal(Signals.RESPONDER_GRANT, e);
-    const delayMS = this.props.delayPressIn;
+    const { delayPressIn: delayMS, delayLongPress: longDelayMS } = this.props;
     if (delayMS) {
       this.touchableDelayTimeout = setTimeout(
         () => {
@@ -375,12 +372,11 @@ export default class Touchable extends React.Component<ITouchable, any> {
     }
 
     const longPressEvent = new PressEvent(e);
-    const longDelayMS = this.props.delayLongPress;
     this.longPressDelayTimeout = setTimeout(
       () => {
         this._handleLongDelay(longPressEvent);
       },
-      longDelayMS + delayMS,
+      longDelayMS! + delayMS!,
     );
   }
 
@@ -670,7 +666,10 @@ export default class Touchable extends React.Component<ITouchable, any> {
     if (!disabled && this.state.active) {
       let { style, className } = child.props;
       if (activeStyle) {
-        style = assign({}, style, activeStyle);
+        style = {
+          ...style,
+          ...activeStyle,
+        };
       }
       if (activeClassName) {
         if (className) {
@@ -679,10 +678,11 @@ export default class Touchable extends React.Component<ITouchable, any> {
           className = activeClassName;
         }
       }
-      return React.cloneElement(child, assign({
+      return React.cloneElement(child, {
         className,
         style,
-      }, events));
+        ...events,
+      });
     }
     return React.cloneElement(child, events);
   }

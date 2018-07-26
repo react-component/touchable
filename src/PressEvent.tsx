@@ -25,6 +25,7 @@ PressEvent.prototype = {
   },
 };
 
+// because of setTimeout, can not depend on fire order
 export function shouldFirePress(e) {
   const { nativeEvent, $pressSeq } = e;
   if (!nativeEvent.$stopPressSeq) {

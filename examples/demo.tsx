@@ -3,6 +3,7 @@
 import Touchable from 'rc-touchable';
 import React from 'react';
 import ReactDOM from 'react-dom';
+
 const style = `
 .active {
   background: red;
@@ -38,10 +39,11 @@ const Test = React.createClass({
   },
   render() {
     return (
-      <div style={{margin: '20px'}}>
-        <div ref="log" style={{height: 100, overflow: 'auto', margin: 10}}/>
-        <style dangerouslySetInnerHTML={{__html: style}}/>
+      <div style={{ margin: '20px' }}>
+        <div ref="log" style={{ height: 100, overflow: 'auto', margin: 10 }}/>
+        <style dangerouslySetInnerHTML={{ __html: style }}/>
         <Touchable
+          activeStyle={{ background: 'blue' }}
           onPress={this.onPress}
           onLongPress={this.onLongPress}
         >
@@ -55,20 +57,21 @@ const Test = React.createClass({
             }}
           >
             <Touchable
-              activeStyle={{border: '1px solid yellow', padding: 5}}
+              activeStyle={{ border: '1px solid yellow', padding: 5 }}
               activeClassName="active"
+              activeStopPropagation
               onPress={this.onPress}
               onLongPress={this.onLongPress}
             >
               <div
                 id="inner"
                 style={{
-              width: 100,
-              height: 100,
-              border: '1px solid red',
-              boxSizing: 'border-box',
-              WebkitUserSelect: 'none',
-            }}
+                  width: 100,
+                  height: 100,
+                  border: '1px solid red',
+                  boxSizing: 'border-box',
+                  WebkitUserSelect: 'none',
+                }}
               >click
               </div>
             </Touchable>
@@ -76,10 +79,13 @@ const Test = React.createClass({
         </Touchable>
         <br/><br/>
 
-        <div tabIndex={0} className="x" onClick={() => { this.log('onClick'); }}>click</div>
+        <div tabIndex={0} className="x" onClick={() => {
+          this.log('onClick');
+        }}>click
+        </div>
       </div>
     );
   },
 });
 
-ReactDOM.render(<Test />, document.getElementById('__react-content'));
+ReactDOM.render(<Test/>, document.getElementById('__react-content'));

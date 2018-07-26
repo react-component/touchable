@@ -171,6 +171,7 @@ const LONG_PRESS_THRESHOLD = 500;
 const LONG_PRESS_DELAY_MS = LONG_PRESS_THRESHOLD - HIGHLIGHT_DELAY_MS;
 
 const LONG_PRESS_ALLOWED_MOVEMENT = 10;
+
 // Default amount "active" region protrudes beyond box
 
 export interface ITouchable {
@@ -192,6 +193,7 @@ export interface ITouchable {
     bottom: number;
   };
   activeStyle?: any;
+  activeStopPropagation?: boolean;
   activeClassName?: string;
   onPress?: (e?: any) => void;
   onLongPress?: (e?: any) => void;
@@ -228,7 +230,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
     active: false,
   };
 
-  touchable: any;
+  touchable: any = { touchState: undefined };
   root: any;
   releaseLockTimer: any;
   touchableDelayTimeout: any;
@@ -236,10 +238,6 @@ export default class Touchable extends React.Component<ITouchable, any> {
   pressOutDelayTimeout: any;
   lockMouse: any;
   pressInLocation: { pageX: number; pageY: number; };
-
-  componentWillMount() {
-    this.touchable = { touchState: undefined };
-  }
 
   componentDidMount() {
     this.root = ReactDOM.findDOMNode(this);
@@ -386,8 +384,9 @@ export default class Touchable extends React.Component<ITouchable, any> {
     const boundingRect = this.root.getBoundingClientRect();
     if (boundingRect.left !== positionOnGrant.clientLeft || boundingRect.top !== positionOnGrant.clientTop) {
       this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
-      return false;
+      return true;
     }
+    return false;
   }
 
   touchableHandleResponderRelease(e) {
@@ -401,7 +400,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
       this._receiveSignal(Signals.RESPONDER_TERMINATED, e);
       return;
     }
-    if (this.checkScroll(e) === false) {
+    if (this.checkScroll(e)) {
       return;
     }
     this._receiveSignal(Signals.RESPONDER_RELEASE, e);
@@ -494,7 +493,13 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   touchableHandleActivePressIn(e) {
-    this.setActive(true);
+    const nativeEvent = e.nativeEvent || e;
+    if (!nativeEvent.__activeStopPropagation) {
+      this.setActive(true);
+    }
+    if (this.props.activeStopPropagation) {
+      nativeEvent.__activeStopPropagation = 1;
+    }
     this.callProp('onPressIn', e);
   }
 
@@ -517,7 +522,8 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   setActive(active) {
-    if (this.props.activeClassName || this.props.activeStyle) {
+    if (this.state.active !== active &&
+      (this.props.activeClassName || this.props.activeStyle)) {
       this.setState({
         active,
       });

@@ -129,7 +129,7 @@ describe('Touchable', () => {
         touches,
         changedTouches: touches,
       });
-      setTimeout(()=> {
+      setTimeout(() => {
         com.touchableHandleResponderRelease(new PressEvent({
           touches,
           changedTouches: touches,
@@ -154,15 +154,18 @@ describe('Touchable', () => {
           disabled: nextPagae >= 3,
         });
       }
+
       render() {
         return (
           <Touchable activeClassName="t" disabled={this.state.disabled} ref={com => this.com = com}>
-            <div id="t" style={{ width: 100, height: 100 }} onClick={this.handleClick}>touch {this.state.currentPage}</div>
+            <div id="t" style={{ width: 100, height: 100 }}
+                 onClick={this.handleClick}>touch {this.state.currentPage}</div>
           </Touchable>
         )
       }
     }
-    const instance = ReactDOM.render(<Demo />, container)
+
+    const instance = ReactDOM.render(<Demo/>, container)
     const com = instance.com;
     const t = document.getElementById('t');
 
@@ -170,5 +173,57 @@ describe('Touchable', () => {
     TestUtils.Simulate.click(t);
     expect(t.className).to.be('');
     expect(com.props.disabled).to.be(true);
+  });
+
+  it('without activeStopPropagation works', () => {
+    class Demo extends React.Component {
+      render() {
+        return (
+          <Touchable activeClassName="t2">
+            <div id="outer">
+              <div>outer</div>
+              <Touchable activeClassName="t">
+                <div id="inner">inner</div>
+              </Touchable>
+            </div>
+          </Touchable>
+        )
+      }
+    }
+
+    const instance = ReactDOM.render(<Demo/>, container)
+    const outer = document.getElementById('outer');
+    const inner = document.getElementById('inner');
+
+    TestUtils.Simulate.touchStart(inner);
+    TestUtils.Simulate.touchEnd(inner);
+    expect(inner.className).to.be('t');
+    expect(outer.className).to.be('t2');
+  });
+
+  it('activeStopPropagation works', () => {
+    class Demo extends React.Component {
+      render() {
+        return (
+          <Touchable activeClassName="t2">
+            <div id="outer">
+              <div>outer</div>
+              <Touchable activeClassName="t" activeStopPropagation>
+                <div id="inner">inner</div>
+              </Touchable>
+            </div>
+          </Touchable>
+        )
+      }
+    }
+
+    const instance = ReactDOM.render(<Demo/>, container)
+    const outer = document.getElementById('outer');
+    const inner = document.getElementById('inner');
+
+    TestUtils.Simulate.touchStart(inner);
+    TestUtils.Simulate.touchEnd(inner);
+    expect(inner.className).to.be('t');
+    expect(outer.className).to.be('');
   });
 });

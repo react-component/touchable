@@ -76,6 +76,12 @@ ReactDOM.render(<Touchable onPress={onPress} activeClassName="active">
           <td></td>
           <td>style applied to child when active</td>
         </tr>
+        <tr>
+          <td>activeStopPropagation</td>
+          <td>object</td>
+          <td></td>
+          <td>stop child active propagate to parent</td>
+        </tr>
     </tbody>
 </table>
 

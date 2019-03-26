@@ -1,6 +1,6 @@
 webpackJsonp([2],{
 
-/***/ 189:
+/***/ 192:
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__(84);
@@ -49,7 +49,7 @@ var Test = __WEBPACK_IMPORTED_MODULE_1_react___default.a.createClass({
                 border: '1px solid red',
                 boxSizing: 'border-box',
                 WebkitUserSelect: 'none'
-            } }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_0_rc_touchable___default.a, { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", activeStopPropagation: true, onPress: this.onPress, onLongPress: this.onLongPress }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { id: "inner", style: {
+            } }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_0_rc_touchable___default.a, { activeStyle: { border: '1px solid yellow', padding: 5 }, activeClassName: "active", activeStopPropagation: true, onPress: this.onPress, onLongPress: this.onLongPress, delayPressIn: 20, delayPressOut: 70 }, __WEBPACK_IMPORTED_MODULE_1_react___default.a.createElement("div", { id: "inner", style: {
                 width: 100,
                 height: 100,
                 border: '1px solid red',
@@ -64,5 +64,5 @@ __WEBPACK_IMPORTED_MODULE_2_react_dom___default.a.render(__WEBPACK_IMPORTED_MODU
 
 /***/ })
 
-},[189]);
+},[192]);
 //# sourceMappingURL=demo.js.map

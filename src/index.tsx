@@ -237,6 +237,7 @@ export default class Touchable extends React.Component<ITouchable, any> {
   longPressDelayTimeout: any;
   pressOutDelayTimeout: any;
   lockMouse: any;
+  shouldActive: Boolean;
   pressInLocation: { pageX: number; pageY: number; };
 
   componentDidMount() {
@@ -342,6 +343,14 @@ export default class Touchable extends React.Component<ITouchable, any> {
     };
   }
 
+  processActiveStopPropagation(e) {
+    const nativeEvent = e.nativeEvent || e;
+    this.shouldActive = !nativeEvent.__activeStopPropagation;
+    if (this.props.activeStopPropagation) {
+      nativeEvent.__activeStopPropagation = 1;
+    }
+  }
+
   touchableHandleResponderGrant(e) {
     this.touchable.touchState = States.NOT_RESPONDER;
 
@@ -358,6 +367,9 @@ export default class Touchable extends React.Component<ITouchable, any> {
 
     this._receiveSignal(Signals.RESPONDER_GRANT, e);
     const { delayPressIn: delayMS, delayLongPress: longDelayMS } = this.props;
+
+    this.processActiveStopPropagation(e);
+
     if (delayMS) {
       this.touchableDelayTimeout = setTimeout(
         () => {
@@ -493,12 +505,8 @@ export default class Touchable extends React.Component<ITouchable, any> {
   }
 
   touchableHandleActivePressIn(e) {
-    const nativeEvent = e.nativeEvent || e;
-    if (!nativeEvent.__activeStopPropagation) {
+    if (this.shouldActive) {
       this.setActive(true);
-    }
-    if (this.props.activeStopPropagation) {
-      nativeEvent.__activeStopPropagation = 1;
     }
     this.callProp('onPressIn', e);
   }

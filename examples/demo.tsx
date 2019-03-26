@@ -62,6 +62,8 @@ const Test = React.createClass({
               activeStopPropagation
               onPress={this.onPress}
               onLongPress={this.onLongPress}
+              delayPressIn={20}
+              delayPressOut={70}
             >
               <div
                 id="inner"
